@@ -1,0 +1,29 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Georama", sans-serif;
+}
+:root {
+  --primary-color: #8bd8bd;
+  --secondary-color: #243665;
+  --hover-color: #82c8b0;
+  --text-color: #333;
+  --subtext-color: #777;
+  --light-grey: #f4f2f5;
+  --grey: #8c939d;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span {
+  color: var(--text-color);
+}
+.app {
+  overflow-x: hidden;
+}

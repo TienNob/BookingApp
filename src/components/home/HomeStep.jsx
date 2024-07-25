@@ -16,33 +16,37 @@ function HomeStep(params) {
   return (
     <Box sx={{ margin: "90px 0" }}>
       <Container>
-        <Stack sx={{ marginBottom: "40px" }} justifyContent="center">
-          <Typography
-            sx={{
-              fontSize: "36px",
-              fontWeight: "bold",
-              textAlign: "center",
-              marginBottom: "14px",
-            }}
-            variant="h3"
-          >
-            Nhận Vé Đơn Giản Chỉ Với 3 Bước{" "}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: "16px",
-              textAlign: "center",
-              color: "var(--subtext-color)",
-              lineHeight: "24px",
-            }}
-            variant="p"
-          >
-            Đặt vé và tận hưỡng chuyến đi chưa bao giờ là dễ dàng đến vậy. Bạn
-            chỉ cần cầm tấm vé và tận hưởng chuyển đi tuyệt với của mình thôi!
-          </Typography>
-        </Stack>
+        <Container maxWidth="sm">
+          <Stack sx={{ marginBottom: "40px" }} justifyContent="center">
+            <Typography
+              sx={{
+                fontSize: "36px",
+                fontWeight: "bold",
+                textAlign: "center",
+                marginBottom: "14px",
+                color: "var(--text-color)",
+              }}
+              variant="h3"
+            >
+              Nhận Vé Đơn Giản Chỉ Với 3 Bước{" "}
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: "16px",
+                textAlign: "center",
+                color: "var(--subtext-color)",
+                lineHeight: "24px",
+              }}
+              variant="p"
+            >
+              Đặt vé và tận hưỡng chuyến đi chưa bao giờ là dễ dàng đến vậy. Bạn
+              chỉ cần cầm tấm vé và tận hưởng chuyển đi tuyệt với của mình thôi!
+            </Typography>
+          </Stack>
+        </Container>
+
         <Grid container justifyContent="center" spacing={4}>
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <Paper className="homeStep-card" elevation={1}>
               <Box>
                 <Badge
@@ -82,7 +86,7 @@ function HomeStep(params) {
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <Paper className="homeStep-card" elevation={1}>
               <Box>
                 <Badge
@@ -121,7 +125,7 @@ function HomeStep(params) {
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <Paper className="homeStep-card" elevation={1}>
               <Box>
                 <Badge

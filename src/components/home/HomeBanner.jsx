@@ -47,7 +47,13 @@ function HomeBanner() {
       <Container>
         <Grid container spacing={6}>
           <Grid item xs={12} md={6}>
-            <Typography sx={{ fontSize: "42px", fontWeight: "bold" }}>
+            <Typography
+              sx={{
+                fontSize: "42px",
+                fontWeight: "bold",
+                color: "var(--text-color)",
+              }}
+            >
               Nhận vé trực tuyến, dễ dàng và an toàn
             </Typography>
             <Button
@@ -74,7 +80,7 @@ function HomeBanner() {
             />
           </Grid>
           <Grid item xs={12} md={6}>
-            <h2>Chọn vé ngay</h2>
+            <h2 style={{ color: "var(--text-color)" }}>Chọn vé ngay</h2>
             <Paper
               elevation={3}
               sx={{ padding: "48px 24px 32px", marginTop: 4 }}

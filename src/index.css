@@ -14,16 +14,6 @@
   --grey: #8c939d;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-p,
-span {
-  color: var(--text-color);
-}
 .app {
   overflow-x: hidden;
 }

@@ -1,0 +1,13 @@
+.MuiGrid-item > .footer-link {
+  display: block;
+  font-size: 16px;
+  text-decoration: none;
+  margin-top: 12px;
+  transition: all 0.3s ease;
+  align-items: center;
+  display: flex;
+}
+
+.footer-link:hover {
+  color: var(--hover-color);
+}

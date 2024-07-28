@@ -88,13 +88,23 @@ function SignUp() {
     setLoading(true);
 
     try {
+      const { data: usersResponse } = await axios.get(
+        "http://localhost:8080/api/users/all"
+      );
+      const phoneExists = usersResponse.some((user) => user.phone === phone);
+
+      if (phoneExists) {
+        enqueueSnackbar("Số điện thoại đã được đăng ký.", { variant: "error" });
+        setLoading(false);
+        return;
+      }
+
       const response = await axios.post("http://localhost:8080/api/users", {
         firstName,
         lastName,
         phone,
         password,
       });
-      console.log("Đăng ký thành công:", response.data);
       enqueueSnackbar("Đăng ký thành công!", { variant: "success" });
 
       setTimeout(() => {

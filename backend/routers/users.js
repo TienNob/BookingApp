@@ -23,5 +23,13 @@ router.post("/", async (req, res) => {
     res.status(500).send({ message: "Internal Server Error" });
   }
 });
+router.get("/all", async (req, res) => {
+  try {
+    const users = await User.find().select("phone");
+    res.status(200).send(users);
+  } catch (error) {
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
 
 module.exports = router;

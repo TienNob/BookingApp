@@ -11,17 +11,23 @@ router.post("/", async (req, res) => {
 
     const user = await User.findOne({ phone: req.body.phone });
     if (!user)
-      return res.status(401).send({ message: "Invalid Email or Password" });
+      return res.status(401).send({ message: "Invalid Phone or Password" });
 
     const validPassword = await bcrypt.compare(
       req.body.password,
       user.password
     );
     if (!validPassword)
-      return res.status(401).send({ message: "Invalid Email or Password" });
+      return res.status(401).send({ message: "Invalid Phone or Password" });
 
     const token = user.generateAuthToken();
-    res.status(200).send({ data: token, message: "logged in successfully" });
+    const { password, ...userWithoutPassword } = user._doc;
+    res
+      .status(200)
+      .send({
+        data: { ...userWithoutPassword, token },
+        message: "Logged in successfully",
+      });
   } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });
   }
@@ -32,7 +38,7 @@ const validate = (data) => {
     phone: Joi.string()
       .pattern(new RegExp("^[0-9]{10,15}$"))
       .required()
-      .label("Phone"), // Updated validation
+      .label("Phone"),
     password: Joi.string().required().label("Password"),
   });
   return schema.validate(data);

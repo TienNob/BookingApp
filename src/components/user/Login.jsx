@@ -13,6 +13,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "../../assets/logo.png";
+
 import { useSnackbar } from "notistack";
 import Loadding from "../Loadding";
 function Login() {
@@ -61,6 +62,9 @@ function Login() {
         password,
       });
       console.log("Đăng nhập thành công:", response.data);
+      const { firstName, lastName } = response.data.data;
+      localStorage.setItem("user", JSON.stringify({ firstName, lastName }));
+      console.log(firstName, lastName);
       enqueueSnackbar("Đăng nhập thành công!", { variant: "success" });
       setTimeout(() => {
         setLoading(false);

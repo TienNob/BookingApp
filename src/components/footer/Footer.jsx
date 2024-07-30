@@ -6,6 +6,10 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
 import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
 import ArrowRightOutlinedIcon from "@mui/icons-material/ArrowRightOutlined";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import TelegramIcon from "@mui/icons-material/Telegram";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import FacebookIcon from "@mui/icons-material/Facebook";
 import "./footer.css";
 function Footer() {
   return (
@@ -31,6 +35,32 @@ function Footer() {
               Đặt vé và tận hưỡng chuyến đi chưa bao giờ là dễ dàng đến vậy. Bạn
               chỉ cần cầm tấm vé và tận hưởng chuyển đi tuyệt với của mình thôi!
             </Typography>
+            <Box sx={{ mt: 1 }}>
+              <Link
+                className="footer-icon_socal"
+                href="https://x.com/?lang=vi&mx=2"
+              >
+                <TwitterIcon />
+              </Link>
+              <Link
+                className="footer-icon_socal"
+                href="https://x.com/?lang=vi&mx=2"
+              >
+                <TelegramIcon />
+              </Link>
+              <Link
+                className="footer-icon_socal"
+                href="https://x.com/?lang=vi&mx=2"
+              >
+                <InstagramIcon />
+              </Link>
+              <Link
+                className="footer-icon_socal"
+                href="https://x.com/?lang=vi&mx=2"
+              >
+                <FacebookIcon />
+              </Link>
+            </Box>
           </Grid>
           <Grid item xs={6} md={4}>
             <Typography variant="h5" sx={{ mb: 2 }} gutterBottom>

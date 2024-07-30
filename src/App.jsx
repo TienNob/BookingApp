@@ -7,12 +7,16 @@ import Home from "./components/home/Home";
 import Footer from "./components/footer/Footer";
 import Login from "./components/user/Login";
 import SignUp from "./components/user/SignUp";
+import Contact from "./components/contact/Contact";
+import Admin from "./components/admin/Admin";
 import { Button } from "@mui/material";
 
 function App() {
   const location = useLocation();
   const hideHeaderFooter =
-    location.pathname === "/login" || location.pathname === "/signup";
+    location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname.includes("/admin");
 
   return (
     <SnackbarProvider
@@ -35,8 +39,10 @@ function App() {
         {!hideHeaderFooter && <Nav />}
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/admin/*" element={<Admin />} />
         </Routes>
         {!hideHeaderFooter && <Footer />}
       </div>

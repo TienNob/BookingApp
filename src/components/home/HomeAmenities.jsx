@@ -37,7 +37,7 @@ function HomeAmenities(params) {
           </Stack>
         </Container>
         <Grid container justifyContent="center" spacing={4}>
-          <Grid item xs={3}>
+          <Grid item xs={6} sm={3}>
             <Paper className="homeStep-card homeAmenities-card" elevation={1}>
               <Box>
                 <WifiIcon
@@ -65,7 +65,7 @@ function HomeAmenities(params) {
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={6} sm={3}>
             <Paper className="homeStep-card homeAmenities-card" elevation={1}>
               <Box>
                 <BedOutlinedIcon
@@ -93,7 +93,7 @@ function HomeAmenities(params) {
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={6} sm={3}>
             <Paper className="homeStep-card homeAmenities-card" elevation={1}>
               <Box>
                 <LocalDrinkOutlinedIcon
@@ -121,7 +121,7 @@ function HomeAmenities(params) {
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={6} sm={3}>
             <Paper className="homeStep-card homeAmenities-card" elevation={1}>
               <Box>
                 <HeadphonesOutlinedIcon

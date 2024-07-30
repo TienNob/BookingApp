@@ -11,7 +11,7 @@
   width: 900px;
   height: 800px;
   right: 100px;
-  top: -520px;
+  top: -450px;
   z-index: -1;
 }
 .home-banner::before {
@@ -24,7 +24,7 @@
   width: 900px;
   height: 800px;
   right: 100px;
-  top: -500px;
+  top: -430px;
   z-index: -2;
 }
 .home-bus {

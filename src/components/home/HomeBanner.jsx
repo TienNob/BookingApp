@@ -38,7 +38,7 @@ function HomeBanner() {
     <Box
       className="home-banner"
       sx={{
-        paddingTop: "100px",
+        paddingTop: "170px",
         paddingBottom: "90px",
         background: `url(${imgBg})  repeat-x bottom`,
       }}

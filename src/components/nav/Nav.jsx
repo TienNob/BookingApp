@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
 import PermIdentityIcon from "@mui/icons-material/PermIdentity";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -21,16 +21,22 @@ import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import imgLogo from "../../assets/ImgLogo.png";
 
-const pages = ["Trang chủ", "Đặt vé", "Liên hệ", "Tin Tức"];
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
+const pages = [
+  { name: "Trang chủ", path: "/" },
+  { name: "Đặt vé", path: "/booking" },
+  { name: "Liên hệ", path: "/contact" },
+  { name: "Tin Tức", path: "/blog" },
+];
 
 function Nav() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [anchorElUser, setAnchorElUser] = useState(null);
-  const [activePage, setActivePage] = useState(pages[0]);
+  const [activePage, setActivePage] = useState(pages[0].name);
   const user = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
+  const location = useLocation();
 
+  console.log(activePage);
   const handleOpenNavMenu = () => {
     setDrawerOpen(true);
   };
@@ -47,7 +53,7 @@ function Nav() {
     setAnchorElUser(null);
   };
   const handlePageClick = (page) => {
-    setActivePage(page);
+    setActivePage(page.name);
   };
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -56,7 +62,7 @@ function Nav() {
   };
   return (
     <AppBar
-      position="static"
+      position="fixed"
       sx={{
         backgroundColor: "#fff",
         boxShadow:
@@ -95,13 +101,15 @@ function Nav() {
                   {pages.map((page) => (
                     <ListItem
                       button
-                      key={page}
+                      key={page.name}
+                      component={RouterLink}
+                      to={page.path}
                       onClick={() => handlePageClick(page)}
                       sx={{
                         my: 2,
                         display: "block",
                         color:
-                          activePage === page
+                          location.pathname === page.path
                             ? "var(--primary-color)"
                             : "var(--text-color)",
                       }}
@@ -109,7 +117,7 @@ function Nav() {
                       <ListItemText
                         primary={
                           <Typography sx={{ color: "inherit" }}>
-                            {page}
+                            {page.name}
                           </Typography>
                         }
                       />{" "}
@@ -125,19 +133,21 @@ function Nav() {
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             {pages.map((page) => (
               <Button
-                key={page}
+                key={page.name}
+                component={RouterLink}
+                to={page.path}
                 onClick={() => handlePageClick(page)}
                 sx={{
                   my: 2,
                   mr: 2,
                   display: "block",
                   color:
-                    activePage === page
+                    location.pathname === page.path
                       ? "var(--primary-color)"
                       : "var(--text-color)",
                 }}
               >
-                {page}
+                {page.name}
               </Button>
             ))}
           </Box>

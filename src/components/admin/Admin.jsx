@@ -53,7 +53,11 @@ function Admin(params) {
       </Box>
       <Box
         component="main"
-        sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${250}px)` } }}
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { xs: "100%", md: `calc(100% - ${250}px)` },
+        }}
       >
         <Toolbar />
         <Routes>

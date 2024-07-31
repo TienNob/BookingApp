@@ -17,7 +17,7 @@ function AdminSidebar() {
       <Box sx={{ display: "flex", justifyContent: "center", pt: 2 }}>
         <img src={imgLogo} alt="Logo" width={137} />
       </Box>
-      <List>
+      <List sx={{ pr: 1, pl: 1 }}>
         <ListItem
           sx={{
             borderRadius: "10px",

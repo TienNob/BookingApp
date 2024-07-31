@@ -14,10 +14,10 @@ router.get("/", async (req, res) => {
 
 // Thêm xe bus mới
 router.post("/", async (req, res) => {
-  const { name, seats, amenities } = req.body;
+  const { name, seats, amenities, image } = req.body;
 
   try {
-    const bus = new Bus({ name, seats, amenities });
+    const bus = new Bus({ name, seats, amenities, image });
     await bus.save();
     res.status(201).json(bus);
   } catch (error) {
@@ -27,12 +27,12 @@ router.post("/", async (req, res) => {
 
 // Cập nhật thông tin xe bus
 router.put("/:id", async (req, res) => {
-  const { name, seats, amenities } = req.body;
+  const { name, seats, amenities, image } = req.body;
 
   try {
     const bus = await Bus.findByIdAndUpdate(
       req.params.id,
-      { name, seats, amenities },
+      { name, seats, amenities, image },
       { new: true, runValidators: true }
     );
 

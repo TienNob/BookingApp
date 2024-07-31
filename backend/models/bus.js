@@ -11,7 +11,11 @@ const busSchema = new mongoose.Schema(
       required: true,
     },
     amenities: [String], // Mảng chứa các tiện nghi
+    image: {
+      type: String, // Lưu đường dẫn hoặc tên hình ảnh
+    },
   },
+
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt
   }

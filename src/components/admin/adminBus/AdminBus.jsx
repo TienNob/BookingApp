@@ -16,19 +16,42 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
-  CircularProgress, // Import CircularProgress
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ControlPointIcon from "@mui/icons-material/ControlPoint";
+import AddIcon from "@mui/icons-material/Add";
 import { useSnackbar } from "notistack";
-import Loadding from "../../Loadding"; // Import your Loadding component
+import Loadding from "../../Loadding";
+import busDefault from "../../../assets/busDefault.png";
 
 const columns = (handleEdit, handleDelete) => [
   { field: "index", headerName: "ID", flex: 0.1 },
-  { field: "name", headerName: "Tên xe", flex: 0.3 },
+  {
+    field: "nameAndImage",
+    headerName: "Xe bus",
+    flex: 0.4,
+    renderCell: (params) => (
+      <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+        <img
+          src={params.row.image || busDefault}
+          alt="Bus"
+          onError={(e) => (e.target.src = busDefault)}
+          style={{
+            width: "50px",
+            height: "auto",
+            objectFit: "contain",
+            marginRight: "16px",
+          }}
+        />
+        <Typography variant="body2" sx={{ color: "var(--text-color)" }}>
+          {params.row.name}
+        </Typography>
+      </Box>
+    ),
+  },
   { field: "seats", headerName: "Số chỗ", flex: 0.2 },
   {
     field: "amenities",
@@ -92,13 +115,14 @@ function ActionsMenu({ params, handleEdit, handleDelete }) {
           <ListItemText primary="Chỉnh sửa" />
         </MenuItem>
         <MenuItem
+          sx={{ color: "var(--red)" }}
           onClick={() => {
             handleDelete(params);
             handleClose();
           }}
         >
           <ListItemIcon>
-            <DeleteIcon />
+            <DeleteIcon sx={{ color: "var(--red)" }} />
           </ListItemIcon>
           <ListItemText primary="Xóa" />
         </MenuItem>
@@ -108,16 +132,15 @@ function ActionsMenu({ params, handleEdit, handleDelete }) {
 }
 
 function AdminBus() {
-  const { enqueueSnackbar } = useSnackbar(); // Initialize snackbar
+  const { enqueueSnackbar } = useSnackbar();
   const [rows, setRows] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [newBus, setNewBus] = useState({ name: "", seats: "", amenities: [] });
   const [inputAmenity, setInputAmenity] = useState("");
   const [editingBus, setEditingBus] = useState(null);
-  const [loading, setLoading] = useState(false); // Loading state
-
+  const [loading, setLoading] = useState(false);
+  const [selectedRows, setSelectedRows] = useState([]);
   useEffect(() => {
-    setLoading(true);
     axios
       .get("http://localhost:8080/api/buses")
       .then((response) => {
@@ -128,11 +151,8 @@ function AdminBus() {
         setRows(dataWithIndex);
       })
       .catch((error) => {
-        console.error("There was an error fetching the data!", error);
-        enqueueSnackbar("Error fetching data", { variant: "error" });
-      })
-      .finally(() => {
-        setLoading(false);
+        console.error("Có lỗi khi lấy dữ liệu!", error);
+        enqueueSnackbar("Lỗi khi lấy dữ liệu", { variant: "error" });
       });
   }, [enqueueSnackbar]);
 
@@ -159,12 +179,12 @@ function AdminBus() {
               : row
           );
           setRows(updatedRows);
-          enqueueSnackbar("Bus updated successfully", { variant: "success" });
+          enqueueSnackbar("Cập nhật xe thành công", { variant: "success" });
           handleCloseDialog();
         })
         .catch((error) => {
-          console.error("There was an error updating the bus!", error);
-          enqueueSnackbar("Error updating bus", { variant: "error" });
+          console.error("Có lỗi khi cập nhật xe!", error);
+          enqueueSnackbar("Lỗi khi cập nhật xe", { variant: "error" });
         })
         .finally(() => {
           setTimeout(() => {
@@ -179,12 +199,12 @@ function AdminBus() {
             ...rows,
             { ...newBus, _id: response.data._id, index: rows.length + 1 },
           ]);
-          enqueueSnackbar("Bus added successfully", { variant: "success" });
+          enqueueSnackbar("Thêm xe thành công", { variant: "success" });
           handleCloseDialog();
         })
         .catch((error) => {
-          console.error("There was an error adding the bus!", error);
-          enqueueSnackbar("Error adding bus", { variant: "error" });
+          console.error("Có lỗi khi thêm xe!", error);
+          enqueueSnackbar("Lỗi khi thêm xe", { variant: "error" });
         })
         .finally(() => {
           setTimeout(() => {
@@ -196,21 +216,53 @@ function AdminBus() {
 
   const handleEdit = (bus) => {
     setEditingBus(bus);
-    setNewBus({ name: bus.name, seats: bus.seats, amenities: bus.amenities });
+    setNewBus({
+      name: bus.name,
+      seats: bus.seats,
+      amenities: bus.amenities,
+      image: bus.image,
+    });
     setOpenDialog(true);
   };
 
   const handleDelete = (bus) => {
-    setLoading(true); // Start loading
+    setLoading(true);
     axios
       .delete(`http://localhost:8080/api/buses/${bus._id}`)
       .then(() => {
         setRows(rows.filter((row) => row._id !== bus._id));
-        enqueueSnackbar("Bus deleted successfully", { variant: "success" });
+        enqueueSnackbar("Xóa xe thành công", { variant: "success" });
       })
       .catch((error) => {
-        console.error("There was an error deleting the bus!", error);
-        enqueueSnackbar("Error deleting bus", { variant: "error" });
+        console.error("Có lỗi khi xóa xe!", error);
+        enqueueSnackbar("Lỗi khi xóa xe", { variant: "error" });
+      })
+      .finally(() => {
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
+      });
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedRows.length === 0) return;
+
+    setLoading(true);
+    Promise.all(
+      selectedRows.map((row) =>
+        axios.delete(`http://localhost:8080/api/buses/${row._id}`)
+      )
+    )
+      .then(() => {
+        setRows(rows.filter((row) => !selectedRows.includes(row)));
+        setSelectedRows([]);
+        enqueueSnackbar("Đã xóa các xe bus được chọn thành công", {
+          variant: "success",
+        });
+      })
+      .catch((error) => {
+        console.error("Có lỗi khi xóa các xe bus!", error);
+        enqueueSnackbar("Lỗi khi xóa các xe bus", { variant: "error" });
       })
       .finally(() => {
         setTimeout(() => {
@@ -239,29 +291,122 @@ function AdminBus() {
     <Box sx={{ width: "100%" }}>
       <Box
         sx={{
-          mb: 2,
+          mb: 6,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
         }}
       >
-        <Typography variant="h6">Danh Sách Xe</Typography>
-        <Button variant="contained" color="primary" onClick={handleAddNew}>
-          Thêm Mới
-        </Button>
+        <Typography sx={{ color: "var(--text-color)" }} variant="h5">
+          Danh Sách Xe Bus
+        </Typography>
+        <Box>
+          {selectedRows.length > 0 ? (
+            <Button
+              sx={{
+                py: 1,
+                px: 2,
+                borderRadius: "8px",
+                backgroundColor: "var(--red)",
+                "&:hover": {
+                  backgroundColor: "var(--dark-red)",
+                },
+                mr: 2,
+              }}
+              variant="contained"
+              color="error"
+              onClick={handleBulkDelete}
+            >
+              <DeleteIcon sx={{ mr: 1 }} /> Xóa Chọn
+            </Button>
+          ) : (
+            <Button
+              sx={{
+                py: 1,
+                px: 2,
+                borderRadius: "8px",
+                backgroundColor: "var(--primary-color)",
+                "&:hover": {
+                  backgroundColor: "var(--hover-color)",
+                },
+              }}
+              variant="contained"
+              color="primary"
+              onClick={handleAddNew}
+            >
+              <AddIcon sx={{ mr: 1 }} /> Thêm Mới
+            </Button>
+          )}
+        </Box>
       </Box>
 
-      <DataGrid
-        rows={rows}
-        columns={columns(handleEdit, handleDelete)}
-        pageSize={5}
-        rowsPerPageOptions={[5]}
-        getRowId={(row) => row.index}
-      />
+      <Box sx={{ height: 500, width: "100%" }}>
+        <DataGrid
+          sx={{ color: "var(--text-color)" }}
+          rows={rows}
+          columns={columns(handleEdit, handleDelete)}
+          getRowId={(row) => row._id}
+          checkboxSelection
+          onRowSelectionModelChange={(newSelection) => {
+            const selectedIds = newSelection;
+            const selectedRows = rows.filter((row) =>
+              selectedIds.includes(row._id)
+            );
+            setSelectedRows(selectedRows);
+          }}
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: 10,
+              },
+            },
+          }}
+          pageSizeOptions={[10, 25, 35, 50]}
+          localeText={{
+            noRowsLabel: "Không có dữ liệu",
+            noResultsOverlayLabel: "Không tìm thấy kết quả",
+            footerRowSelected: (count) =>
+              count !== 1
+                ? `${count.toLocaleString()} hàng đã chọn`
+                : `${count.toLocaleString()} hàng đã chọn`,
+            footerTotalRows: "Tổng số hàng:",
+            footerTotalVisibleRows: (visibleCount, totalCount) =>
+              `${visibleCount.toLocaleString()} trong số ${totalCount.toLocaleString()}`,
+            footerPaginationRowsPerPage: "Số hàng mỗi trang",
+            footerPaginationNext: "Trang tiếp",
+            footerPaginationPrevious: "Trang trước",
+            footerPaginationLabel: (from, to, count) =>
+              `${from}–${to} của ${count}`,
+          }}
+        />
+      </Box>
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>{editingBus ? "Chỉnh sửa xe" : "Thêm mới xe"}</DialogTitle>
         <DialogContent>
+          {newBus.image && (
+            <Box sx={{ mt: 2, textAlign: "start" }}>
+              <img
+                src={newBus.image}
+                alt="Preview"
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "200px",
+                  objectFit: "contain",
+                }}
+              />
+            </Box>
+          )}
+          <TextField
+            margin="dense"
+            label="Link hình ảnh"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={newBus.image}
+            onChange={(e) => setNewBus({ ...newBus, image: e.target.value })}
+          />
+
           <TextField
             autoFocus
             margin="dense"

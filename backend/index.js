@@ -5,8 +5,8 @@ const cors = require("cors");
 const connection = require("./db");
 const userRoutes = require("./routers/users");
 const authRoutes = require("./routers/auth");
-const busRoutes = require("./routers/buses");
-const ticketRoutes = require("./routers/tickets");
+const postRoutes = require("./routers/posts");
+const tripRoutes = require("./routers/trips");
 
 // database connection
 connection();
@@ -18,8 +18,8 @@ app.use(cors());
 // routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/buses", busRoutes);
-app.use("/api/tickets", ticketRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/trips", tripRoutes);
 
 const port = process.env.PORT || 8080;
 app.listen(port, console.log(`Listening on port ${port}...`));

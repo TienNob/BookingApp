@@ -140,6 +140,7 @@ function AdminBus() {
   const [editingBus, setEditingBus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
+
   useEffect(() => {
     axios
       .get("http://localhost:8080/api/buses")
@@ -317,7 +318,7 @@ function AdminBus() {
               color="error"
               onClick={handleBulkDelete}
             >
-              <DeleteIcon sx={{ mr: 1 }} /> Xóa Chọn
+              <DeleteIcon sx={{ mr: 1 }} /> Xóa ({selectedRows.length})
             </Button>
           ) : (
             <Button
@@ -399,10 +400,10 @@ function AdminBus() {
           )}
           <TextField
             margin="dense"
-            label="Link hình ảnh"
+            label="Liên kết hình ảnh"
             type="text"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={newBus.image}
             onChange={(e) => setNewBus({ ...newBus, image: e.target.value })}
           />
@@ -414,7 +415,7 @@ function AdminBus() {
             label="Tên xe"
             type="text"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={newBus.name}
             onChange={(e) => setNewBus({ ...newBus, name: e.target.value })}
           />
@@ -424,7 +425,7 @@ function AdminBus() {
             label="Số chỗ"
             type="number"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={newBus.seats}
             onChange={(e) => setNewBus({ ...newBus, seats: e.target.value })}
           />
@@ -434,10 +435,10 @@ function AdminBus() {
             label="Tiện nghi"
             type="text"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={inputAmenity}
             onChange={(e) => setInputAmenity(e.target.value)}
-            onKeyDown={(e) => {
+            onKeyUp={(e) => {
               if (e.key === "Enter") {
                 handleAddAmenity();
               }

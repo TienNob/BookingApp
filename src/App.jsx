@@ -9,6 +9,7 @@ import Login from "./components/user/Login";
 import SignUp from "./components/user/SignUp";
 import Contact from "./components/contact/Contact";
 import Admin from "./components/admin/Admin";
+import Forum from "./components/forum/Forum";
 import { Button } from "@mui/material";
 
 function App() {
@@ -17,7 +18,7 @@ function App() {
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
     location.pathname.includes("/admin");
-
+  const hideFooter = hideHeaderFooter || location.pathname === "/forum";
   return (
     <SnackbarProvider
       autoHideDuration={3000}
@@ -43,8 +44,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/admin/*" element={<Admin />} />
+          <Route path="/forum" element={<Forum />} />
         </Routes>
-        {!hideHeaderFooter && <Footer />}
+        {!hideFooter && <Footer />}{" "}
       </div>
     </SnackbarProvider>
   );

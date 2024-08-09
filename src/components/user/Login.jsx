@@ -62,8 +62,10 @@ function Login() {
         password,
       });
       console.log("Đăng nhập thành công:", response.data);
-      const { firstName, lastName } = response.data.data;
+      const { firstName, lastName, token } = response.data.data;
       localStorage.setItem("user", JSON.stringify({ firstName, lastName }));
+      localStorage.setItem("token", token);
+
       console.log(firstName, lastName);
       enqueueSnackbar("Đăng nhập thành công!", { variant: "success" });
       setTimeout(() => {

@@ -25,7 +25,7 @@ const pages = [
   { name: "Trang chủ", path: "/" },
   { name: "Đặt vé", path: "/booking" },
   { name: "Liên hệ", path: "/contact" },
-  { name: "Tin Tức", path: "/blog" },
+  { name: "Tin Tức", path: "/forum" },
 ];
 
 function Nav() {
@@ -57,6 +57,7 @@ function Nav() {
   };
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setAnchorElUser(null);
     navigate("/login");
   };
@@ -155,15 +156,13 @@ function Nav() {
           <Box sx={{ flexGrow: 0 }}>
             {user ? (
               <>
-                <Tooltip title="Open settings">
-                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar
-                      sx={{ bgcolor: "var(--secondary-color)" }}
-                      alt={user.firstName}
-                      src={"/static/images/avatar/2.jpg"}
-                    />
-                  </IconButton>
-                </Tooltip>
+                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                  <Avatar
+                    sx={{ bgcolor: "var(--secondary-color)" }}
+                    alt={user.firstName}
+                    src={"/static/images/avatar/2.jpg"}
+                  />
+                </IconButton>
                 <Menu
                   sx={{ mt: "45px" }}
                   id="menu-appbar"

@@ -2,6 +2,7 @@ const router = require("express").Router();
 const { User } = require("../models/user");
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
+const jwt = require("jsonwebtoken");
 
 router.post("/", async (req, res) => {
   try {
@@ -20,14 +21,13 @@ router.post("/", async (req, res) => {
     if (!validPassword)
       return res.status(401).send({ message: "Invalid Phone or Password" });
 
-    const token = user.generateAuthToken();
+    const token = jwt.sign({ _id: user._id }, process.env.JWTPRIVATEKEY);
+
     const { password, ...userWithoutPassword } = user._doc;
-    res
-      .status(200)
-      .send({
-        data: { ...userWithoutPassword, token },
-        message: "Logged in successfully",
-      });
+    res.status(200).send({
+      data: { ...userWithoutPassword, token },
+      message: "Logged in successfully",
+    });
   } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });
   }

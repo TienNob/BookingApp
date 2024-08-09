@@ -6,8 +6,8 @@
 }
 :root {
   --primary-color: #8bd8bd;
-  --secondary-color: #243665;
-  --hover-color: #82c8b0;
+  --secondary-color: #2b4fa0;
+  --hover-color: #72b89e;
   --text-color: #333;
   --subtext-color: #777;
   --light-grey: #f4f2f5;
@@ -16,8 +16,23 @@
   --dark-red: #ca3d12;
   --bg-btn: #eef8f2;
   --hover-bg-btn: #dff8e9;
+  --bg-primary: #eef2f6;
 }
 
 .app {
   overflow-x: hidden;
+}
+
+/* custom MUI css */
+
+.Mui-focused {
+  color: var(--hover-color) !important;
+}
+
+.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--hover-color) !important;
+}
+.css-1u4zpwo-MuiSvgIcon-root-MuiStepIcon-root.Mui-active,
+.css-1u4zpwo-MuiSvgIcon-root-MuiStepIcon-root.Mui-completed {
+  color: var(--secondary-color) !important;
 }

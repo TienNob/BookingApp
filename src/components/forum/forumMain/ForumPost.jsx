@@ -16,11 +16,15 @@ import {
   Grid,
 } from "@mui/material";
 import axios from "axios";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import CloseIcon from "@mui/icons-material/Close";
 import ImageIcon from "@mui/icons-material/Image";
 import DirectionsIcon from "@mui/icons-material/Directions";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import { useSnackbar } from "notistack";
+import Loadding from "../../Loadding";
 
 function ForumPost({ open, handleClose }) {
   const [postContent, setPostContent] = useState("");
@@ -38,6 +42,8 @@ function ForumPost({ open, handleClose }) {
   const [communes, setCommunes] = useState([]);
   const [costPerKm, setCostPerKm] = useState("");
   const { enqueueSnackbar } = useSnackbar();
+  const [loading, setLoading] = useState(false);
+  const [departureTime, setDepartureTime] = useState(null); // State for date-time picker
 
   // Fetch provinces
   useEffect(() => {
@@ -204,7 +210,7 @@ function ForumPost({ open, handleClose }) {
       return;
     }
     if (showTripDetails) {
-      if (!availableSeats || !costPerKm) {
+      if (!availableSeats || !costPerKm || !departureTime) {
         enqueueSnackbar("Vui lòng nhập đầy đủ thông tin chuyến đi", {
           variant: "error",
         });
@@ -217,6 +223,7 @@ function ForumPost({ open, handleClose }) {
         return;
       }
     }
+    setLoading(true);
 
     try {
       let tripId = null;
@@ -241,6 +248,7 @@ function ForumPost({ open, handleClose }) {
           }),
           prices: totalCost,
           seatsAvailable: availableSeats,
+          departureTime: departureTime.toISOString(),
         };
 
         // Post the trip data first
@@ -273,6 +281,9 @@ function ForumPost({ open, handleClose }) {
       );
 
       if (postResponse.status === 201) {
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
         enqueueSnackbar("Bài viết đã được đăng thành công", {
           variant: "success",
         });
@@ -283,17 +294,21 @@ function ForumPost({ open, handleClose }) {
         setTripSteps([{}]);
         setAvailableSeats("");
         setActiveStep(0);
+        setDepartureTime(null); // Reset departure time
         setShowImageInput(false);
         setShowTripDetails(false);
         setSelectedProvince(null);
         setSelectedDistrict(null);
         setSelectedCommune(null);
         handleClose();
+        window.location.reload();
       } else {
         enqueueSnackbar("Đăng bài viết thất bại", { variant: "error" });
+        setLoading(false);
       }
     } catch (error) {
       console.error("Error submitting data:", error);
+      setLoading(false);
       enqueueSnackbar("Đã xảy ra lỗi trong quá trình xử lý", {
         variant: "error",
       });
@@ -479,6 +494,25 @@ function ForumPost({ open, handleClose }) {
                   }
                 />
               </Grid>
+              <Grid item xs={12}>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DateTimePicker
+                    sx={{ width: "100%" }}
+                    label="Ngày giờ xuất phát"
+                    value={departureTime}
+                    onChange={(newValue) => setDepartureTime(newValue)}
+                    minDateTime={new Date()}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        sx={{ mt: 2 }}
+                        fullWidth
+                        variant="outlined"
+                      />
+                    )}
+                  />
+                </LocalizationProvider>
+              </Grid>
             </Grid>
 
             <Stepper activeStep={activeStep} alternativeLabel sx={{ mt: 2 }}>
@@ -596,6 +630,7 @@ function ForumPost({ open, handleClose }) {
           Đăng bài
         </Button>
       </DialogActions>
+      {loading && <Loadding />}
     </Dialog>
   );
 }

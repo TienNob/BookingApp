@@ -11,6 +11,7 @@ import Contact from "./components/contact/Contact";
 import Admin from "./components/admin/Admin";
 import Forum from "./components/forum/Forum";
 import { Button } from "@mui/material";
+import ScrollTop from "./components/ScrollTop";
 
 function App() {
   const location = useLocation();
@@ -46,7 +47,7 @@ function App() {
           <Route path="/admin/*" element={<Admin />} />
           <Route path="/forum" element={<Forum />} />
         </Routes>
-        {!hideFooter && <Footer />}{" "}
+        {!hideFooter && <Footer />} <ScrollTop />
       </div>
     </SnackbarProvider>
   );

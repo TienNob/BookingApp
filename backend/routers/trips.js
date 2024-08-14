@@ -15,10 +15,10 @@ router.get("/", async (req, res) => {
 
 // Thêm chuyến đi mới
 router.post("/", authenticateToken, async (req, res) => {
-  const { seatsAvailable, locations, prices } = req.body;
+  const { seatsAvailable, locations, prices, departureTime } = req.body;
 
   try {
-    const trip = new Trip({ seatsAvailable, locations, prices });
+    const trip = new Trip({ seatsAvailable, locations, prices, departureTime });
     await trip.save();
     res.status(201).json(trip);
   } catch (error) {
@@ -28,12 +28,12 @@ router.post("/", authenticateToken, async (req, res) => {
 
 // Cập nhật thông tin chuyến đi
 router.put("/:id", authenticateToken, async (req, res) => {
-  const { seatsAvailable, locations, prices } = req.body;
+  const { seatsAvailable, locations, prices, departureTime } = req.body;
 
   try {
     const trip = await Trip.findByIdAndUpdate(
       req.params.id,
-      { seatsAvailable, locations, prices },
+      { seatsAvailable, locations, prices, departureTime },
       { new: true, runValidators: true }
     );
 

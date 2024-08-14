@@ -18,6 +18,10 @@ const tripSchema = new mongoose.Schema(
         required: true,
       },
     ],
+    departureTime: {
+      type: Date,
+      required: true,
+    },
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt

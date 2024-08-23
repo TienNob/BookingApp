@@ -23,9 +23,9 @@ import imgLogo from "../../assets/ImgLogo.png";
 
 const pages = [
   { name: "Trang chủ", path: "/" },
-  { name: "Đặt vé", path: "/booking" },
+  { name: "Đặt vé", path: "/tickets" },
   { name: "Liên hệ", path: "/contact" },
-  { name: "Tin Tức", path: "/forum" },
+  { name: "Diễn đàn", path: "/forum" },
 ];
 
 function Nav() {
@@ -33,6 +33,7 @@ function Nav() {
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [activePage, setActivePage] = useState(pages[0].name);
   const user = JSON.parse(localStorage.getItem("user"));
+  const userId = localStorage.getItem("userId");
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,6 +62,10 @@ function Nav() {
     setAnchorElUser(null);
     navigate("/login");
   };
+  const handleViewProfile = () => {
+    navigate(`/forum-profile/${userId}`);
+  };
+
   return (
     <AppBar
       position="fixed"
@@ -158,9 +163,10 @@ function Nav() {
               <>
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                   <Avatar
-                    sx={{ bgcolor: "var(--secondary-color)" }}
-                    alt={user.firstName}
-                    src={"/static/images/avatar/2.jpg"}
+                    sx={{
+                      border: "1px solid var(--bg-primary)",
+                    }}
+                    src={`http://localhost:8080${user.avatar}` || ""}
                   />
                 </IconButton>
                 <Menu
@@ -179,7 +185,7 @@ function Nav() {
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
-                  <MenuItem onClick={handleCloseUserMenu}>
+                  <MenuItem onClick={handleViewProfile}>
                     <Typography
                       sx={{
                         display: "flex",

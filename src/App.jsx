@@ -10,6 +10,9 @@ import SignUp from "./components/user/SignUp";
 import Contact from "./components/contact/Contact";
 import Admin from "./components/admin/Admin";
 import Forum from "./components/forum/Forum";
+import Ticket from "./components/ticket/Ticket";
+import TicketDetail from "./components/ticket/TicketDetail";
+import ForumProfile from "./components/forum/ForumProfile";
 import { Button } from "@mui/material";
 import ScrollTop from "./components/ScrollTop";
 
@@ -19,7 +22,10 @@ function App() {
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
     location.pathname.includes("/admin");
-  const hideFooter = hideHeaderFooter || location.pathname === "/forum";
+  const hideFooter =
+    hideHeaderFooter ||
+    location.pathname === "/forum" ||
+    location.pathname === "/tickets";
   return (
     <SnackbarProvider
       autoHideDuration={3000}
@@ -46,6 +52,9 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/admin/*" element={<Admin />} />
           <Route path="/forum" element={<Forum />} />
+          <Route path="/forum-profile/:userId" element={<ForumProfile />} />
+          <Route path="/tickets" element={<Ticket />} />
+          <Route path="/ticket-detail/:id" element={<TicketDetail />} />
         </Routes>
         {!hideFooter && <Footer />} <ScrollTop />
       </div>

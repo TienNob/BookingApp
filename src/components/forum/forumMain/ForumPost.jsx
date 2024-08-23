@@ -31,6 +31,7 @@ function ForumPost({ open, handleClose }) {
   const [showImageInput, setShowImageInput] = useState(false);
   const [showTripDetails, setShowTripDetails] = useState(false);
   const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [tripSteps, setTripSteps] = useState([{}]); // Initialize with one empty step object
   const [availableSeats, setAvailableSeats] = useState("");
   const [activeStep, setActiveStep] = useState(0);
@@ -44,6 +45,7 @@ function ForumPost({ open, handleClose }) {
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
   const [departureTime, setDepartureTime] = useState(null); // State for date-time picker
+  const [totalSeats, setTotalSeats] = useState(null);
 
   // Fetch provinces
   useEffect(() => {
@@ -202,7 +204,6 @@ function ForumPost({ open, handleClose }) {
       window.location.href = "/login";
       return;
     }
-    console.log(token);
     if (!postContent.trim()) {
       enqueueSnackbar("Nội dung bài viết không được để trống", {
         variant: "error",
@@ -210,7 +211,7 @@ function ForumPost({ open, handleClose }) {
       return;
     }
     if (showTripDetails) {
-      if (!availableSeats || !costPerKm || !departureTime) {
+      if (!availableSeats || !costPerKm || !departureTime || !totalSeats) {
         enqueueSnackbar("Vui lòng nhập đầy đủ thông tin chuyến đi", {
           variant: "error",
         });
@@ -223,7 +224,6 @@ function ForumPost({ open, handleClose }) {
         return;
       }
     }
-    setLoading(true);
 
     try {
       let tripId = null;
@@ -246,8 +246,10 @@ function ForumPost({ open, handleClose }) {
               .filter((name) => name)
               .join(", "); // Join names with a comma
           }),
+          costPerKm: costPerKm,
           prices: totalCost,
           seatsAvailable: availableSeats,
+          totalSeats: totalSeats,
           departureTime: departureTime.toISOString(),
         };
 
@@ -267,25 +269,33 @@ function ForumPost({ open, handleClose }) {
       }
 
       // Prepare post data
-      const postData = {
-        postContent,
-        image: imageFile,
-        trip: tripId, // Reference the trip ID if trip was posted
-      };
+      const formData = new FormData();
+      formData.append("postContent", postContent);
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+      if (tripId) {
+        formData.append("trip", tripId);
+      }
 
       // Post the main post data
       const postResponse = await axios.post(
         "http://localhost:8080/api/posts",
-        postData,
-        { headers: { Authorization: `Bearer ${token}` } }
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
-
       if (postResponse.status === 201) {
-        setTimeout(() => {
-          setLoading(false);
-        }, 500);
         enqueueSnackbar("Bài viết đã được đăng thành công", {
           variant: "success",
+        });
+
+        window.addEventListener("beforeunload", () => {
+          setLoading(true);
         });
 
         // Reset form
@@ -294,7 +304,8 @@ function ForumPost({ open, handleClose }) {
         setTripSteps([{}]);
         setAvailableSeats("");
         setActiveStep(0);
-        setDepartureTime(null); // Reset departure time
+        setDepartureTime(null);
+        setTotalSeats(null);
         setShowImageInput(false);
         setShowTripDetails(false);
         setSelectedProvince(null);
@@ -316,9 +327,11 @@ function ForumPost({ open, handleClose }) {
   };
 
   const handleImageChange = (e) => {
-    setImageFile(URL.createObjectURL(e.target.files[0]));
+    setImageFile(e.target.files[0]);
+    setImagePreview(URL.createObjectURL(e.target.files[0]));
   };
 
+  console.log(imageFile);
   const handleTripStepChange = (index, field, value) => {
     const updatedSteps = [...tripSteps];
     updatedSteps[index] = {
@@ -436,7 +449,7 @@ function ForumPost({ open, handleClose }) {
             {imageFile && (
               <Box mt={2} textAlign="center">
                 <img
-                  src={imageFile}
+                  src={imagePreview}
                   alt="Preview"
                   style={{
                     maxWidth: "100%",
@@ -472,6 +485,27 @@ function ForumPost({ open, handleClose }) {
                   }
                 />
               </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Tổng số ghế"
+                  variant="outlined"
+                  value={totalSeats}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value < 0) {
+                      setTotalSeats(0);
+                    } else {
+                      setTotalSeats(value);
+                    }
+                  }}
+                  error={totalSeats < 0}
+                  helperText={
+                    totalSeats < 0 ? "Số chỗ không thể nhỏ hơn 0" : ""
+                  }
+                />
+              </Grid>
 
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -494,7 +528,7 @@ function ForumPost({ open, handleClose }) {
                   }
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <DateTimePicker
                     sx={{ width: "100%" }}

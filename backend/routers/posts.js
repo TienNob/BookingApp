@@ -2,14 +2,52 @@ const express = require("express");
 const router = express.Router();
 const Post = require("../models/post");
 const authenticateToken = require("../middleware/authenticateToken");
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
+
+const uploadDir = "uploads";
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+// Cấu hình lưu trữ
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir); // Thư mục lưu trữ file
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Đặt tên file với timestamp để tránh trùng lặp
+  },
+});
+
+// Khởi tạo Multer với cấu hình lưu trữ
+const upload = multer({ storage: storage });
 
 // Lấy danh sách các bài đăng (Không cần token)
 router.get("/", async (req, res) => {
   try {
     const posts = await Post.find()
       .populate("trip")
-      .populate("actor", "firstName lastName phone")
-      .populate("comments.user", "firstName lastName");
+      .populate("actor", "firstName lastName phone avatar")
+      .populate("comments.user", "firstName lastName avatar");
+    res.status(200).json(posts);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+router.get("/actor/:_id", async (req, res) => {
+  try {
+    const { _id } = req.params;
+    const posts = await Post.find({ actor: _id })
+      .populate("trip")
+      .populate("actor", "firstName lastName phone avatar")
+      .populate("comments.user", "firstName lastName avatar");
+
+    if (posts.length === 0) {
+      return res.status(404).json({ message: "No posts found for this actor" });
+    }
+
     res.status(200).json(posts);
   } catch (error) {
     res.status(500).json({ message: "Server Error", error });
@@ -17,40 +55,60 @@ router.get("/", async (req, res) => {
 });
 
 // Thêm bài đăng mới (Yêu cầu token)
-router.post("/", authenticateToken, async (req, res) => {
-  const { postContent, image, trip } = req.body;
+router.post(
+  "/",
+  authenticateToken,
+  upload.single("image"),
+  async (req, res) => {
+    const { postContent, trip } = req.body;
 
-  try {
-    const actor = req.user._id;
+    try {
+      const actor = req.user._id;
 
-    const post = new Post({ postContent, image, trip, actor });
-    await post.save();
-    res.status(201).json(post);
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
+      // Construct the image path
+      const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+      const post = new Post({ postContent, image: imagePath, trip, actor });
+      await post.save();
+      res.status(201).json(post);
+    } catch (error) {
+      res.status(500).json({ message: "Server Error", error });
+    }
   }
-});
+);
 
 // Cập nhật thông tin bài đăng (Yêu cầu token)
-router.put("/:id", authenticateToken, async (req, res) => {
-  const { postContent, image, trip } = req.body;
+router.put(
+  "/:id",
+  authenticateToken,
+  upload.single("image"),
+  async (req, res) => {
+    const { postContent, trip } = req.body;
 
-  try {
-    const post = await Post.findByIdAndUpdate(
-      req.params.id,
-      { postContent, image, trip },
-      { new: true, runValidators: true }
-    );
+    try {
+      // Find the post by ID
+      const post = await Post.findById(req.params.id);
 
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      // Update the post content and trip
+      post.postContent = postContent;
+      post.trip = trip;
+
+      // If a new image was uploaded, update the image path
+      if (req.file) {
+        post.image = `/uploads/${req.file.filename}`;
+      }
+
+      await post.save();
+      res.status(200).json(post);
+    } catch (error) {
+      res.status(500).json({ message: "Server Error", error });
     }
-
-    res.status(200).json(post);
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
   }
-});
+);
 
 // Xóa bài đăng (Yêu cầu token)
 router.delete("/:id", authenticateToken, async (req, res) => {

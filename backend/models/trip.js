@@ -6,12 +6,20 @@ const tripSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    totalSeats: {
+      type: Number,
+      required: true,
+    },
     locations: [
       {
         type: String,
         required: true,
       },
     ],
+    costPerKm: {
+      type: Number,
+      required: true,
+    },
     prices: [
       {
         type: Number,

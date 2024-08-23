@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Card,
@@ -19,6 +20,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ModeCommentOutlinedIcon from "@mui/icons-material/ModeCommentOutlined";
 import SendIcon from "@mui/icons-material/Send";
+import EastOutlinedIcon from "@mui/icons-material/EastOutlined";
 import { formatDistanceToNow } from "date-fns";
 import vi from "date-fns/locale/vi";
 import notIMG from "../../../assets/cannotImg.jpg";
@@ -37,6 +39,7 @@ const ForumContent = () => {
   const [hasMorePosts, setHasMorePosts] = useState(true); // Flag to check if more posts are available
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -167,7 +170,12 @@ const ForumContent = () => {
   const sortedPosts = posts.sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
-
+  const handleViewDetails = (tripId) => {
+    navigate(`/ticket-detail/${tripId}`);
+  };
+  const handleViewProfile = (userId) => {
+    navigate(`/forum-profile/${userId}`);
+  };
   return (
     <Grid container spacing={2}>
       {loading
@@ -194,16 +202,38 @@ const ForumContent = () => {
           ))
         : sortedPosts.slice(0, visibleCount).map((post) => (
             <Grid item xs={12} key={post._id}>
-              <Card>
+              <Card
+                sx={{
+                  boxShadow: "0 0 2px rgba(27, 39, 61, 0.25)",
+                  mb: 1,
+                  borderRadius: 3,
+                }}
+              >
                 <CardContent>
                   <Stack direction="row" spacing={2} alignItems="center">
                     <Avatar
-                      src={"/static/images/avatar/2.jpg"}
+                      src={`http://localhost:8080${post.actor.avatar}` || ""}
                       alt={post.actor?.firstName}
-                      sx={{ width: 45, height: 45 }}
+                      onClick={() => handleViewProfile(post.actor._id)}
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        cursor: "pointer",
+                        transition: "all linear 0.3s",
+                        "&:hover": { opacity: 0.7 },
+                      }}
                     />
                     <Box>
-                      <Typography variant="h6" component="span">
+                      <Typography
+                        variant="h6"
+                        component="span"
+                        onClick={() => handleViewProfile(post.actor)}
+                        sx={{
+                          cursor: "pointer",
+
+                          "&:hover": { textDecoration: "underline" },
+                        }}
+                      >
                         {post.actor.firstName} {post.actor.lastName}
                       </Typography>
                       <Typography
@@ -225,7 +255,7 @@ const ForumContent = () => {
                       component="img"
                       height="200"
                       sx={{ objectFit: "contain" }}
-                      image={post.image || notIMG}
+                      image={`http://localhost:8080${post.image}` || notIMG}
                       alt="Post image"
                       onError={(e) => {
                         e.target.onerror = null;
@@ -234,20 +264,74 @@ const ForumContent = () => {
                     />
                   )}
                   {post.trip && (
-                    <Box mt={2}>
-                      <Typography variant="subtitle2" color="text.secondary">
-                        Available Seats: {post.trip.seatsAvailable}
+                    <Card
+                      onClick={() => handleViewDetails(post.trip._id)}
+                      sx={{
+                        p: 2,
+                        mt: 2,
+                        boxShadow: "0 0 5px rgba(27, 39, 61, 0.25)",
+                        transition: "all linear 0.2s",
+                        "&:hover": {
+                          cursor: "pointer",
+                          boxShadow: "0 0 5px  rgba(81, 192, 113, 0.25)",
+                          color: "var(--primary-color)",
+                        },
+                      }}
+                    >
+                      <Typography variant="h6" mb={1} gutterBottom>
+                        Thông tin chuyến đi
                       </Typography>
-                      <Typography variant="subtitle2" color="text.secondary">
-                        Locations: {post.trip.locations.join(" - ")}
+                      <Typography
+                        variant="subtitle2"
+                        mb={1}
+                        sx={{ color: "var(--subtext-color)" }}
+                      >
+                        - Tuyến đường:{" "}
+                        {post.trip.locations.map((location, index) => (
+                          <React.Fragment key={index}>
+                            {location}
+                            {index < post.trip.locations.length - 1 && (
+                              <EastOutlinedIcon
+                                sx={{
+                                  fontSize: "14px",
+                                  mx: 1,
+                                  color: "var(--primary-color)",
+                                }}
+                              />
+                            )}
+                          </React.Fragment>
+                        ))}
                       </Typography>
-                      <Typography variant="subtitle2" color="text.secondary">
-                        Prices:{" "}
-                        {post.trip.prices
-                          .map((price) => `${price} VND`)
-                          .join(", ")}
+                      <Typography
+                        variant="subtitle2"
+                        mb={1}
+                        color="text.secondary"
+                      >
+                        - Giờ khởi hành:{" "}
+                        {new Date(post.trip.departureTime).toLocaleString()}
                       </Typography>
-                    </Box>
+                      <Typography
+                        variant="subtitle2"
+                        mb={1}
+                        color="text.secondary"
+                      >
+                        - Loại xe: {post.trip.totalSeats} chỗ
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        mb={1}
+                        color="text.secondary"
+                      >
+                        - Số ghế trống: {post.trip.seatsAvailable}
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        mb={1}
+                        color="text.secondary"
+                      >
+                        - Giá trên 1km: {post.trip.costPerKm} VND
+                      </Typography>
+                    </Card>
                   )}
                   <Box mt={2} display="flex">
                     <Box>
@@ -337,16 +421,35 @@ const ForumContent = () => {
                               alignItems="center"
                             >
                               <Avatar
-                                sx={{ mr: 2, width: "35px", height: "35px" }}
-                                alt={
-                                  comment.user._id === userId
-                                    ? "Bạn"
-                                    : comment.user.firstName
+                                sx={{
+                                  mr: 2,
+                                  width: "35px",
+                                  height: "35px",
+                                  cursor: "pointer",
+                                  transition: "all linear 0.3s",
+                                  "&:hover": { opacity: 0.7 },
+                                }}
+                                onClick={() =>
+                                  handleViewProfile(comment.user._id)
                                 }
-                                src={"/static/images/avatar/2.jpg"}
+                                src={
+                                  `http://localhost:8080${comment.user.avatar}` ||
+                                  ""
+                                }
                               />
                               <Box>
-                                <Typography variant="body2" fontWeight="bold">
+                                <Typography
+                                  variant="body2"
+                                  fontWeight="bold"
+                                  sx={{
+                                    cursor: "pointer",
+
+                                    "&:hover": { textDecoration: "underline" },
+                                  }}
+                                  onClick={() =>
+                                    handleViewProfile(comment.user._id)
+                                  }
+                                >
                                   {comment.user._id === userId
                                     ? "Bạn"
                                     : `${comment.user.firstName} ${comment.user.lastName}`}

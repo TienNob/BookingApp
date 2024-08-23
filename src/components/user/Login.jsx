@@ -62,8 +62,11 @@ function Login() {
         password,
       });
       console.log("Đăng nhập thành công:", response.data);
-      const { firstName, lastName, token, _id } = response.data.data;
-      localStorage.setItem("user", JSON.stringify({ firstName, lastName }));
+      const { firstName, lastName, token, _id, avatar } = response.data.data;
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ firstName, lastName, avatar })
+      );
       localStorage.setItem("token", token);
       localStorage.setItem("userId", _id);
 

@@ -54,7 +54,7 @@ function HomeBanner() {
                 color: "var(--text-color)",
               }}
             >
-              Nhận vé trực tuyến, dễ dàng và an toàn
+              Bạn đang cần cộng đồng chia sẽ chuyến đi ?
             </Typography>
             <Button
               variant="contained"
@@ -67,7 +67,7 @@ function HomeBanner() {
                 padding: "10px 28px",
               }}
             >
-              Mua ngay
+              Đến ngay
             </Button>
             <img
               src={arrow}
@@ -80,7 +80,7 @@ function HomeBanner() {
             />
           </Grid>
           <Grid item xs={12} md={6}>
-            <h2 style={{ color: "var(--text-color)" }}>Chọn vé ngay</h2>
+            <h2 style={{ color: "var(--text-color)" }}>Tìm vé ngay</h2>
             <Paper
               elevation={3}
               sx={{ padding: "48px 24px 32px", marginTop: 4 }}

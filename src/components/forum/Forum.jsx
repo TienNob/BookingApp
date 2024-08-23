@@ -3,7 +3,14 @@ import { Box, Grid, Container } from "@mui/material";
 import ForumMain from "./forumMain/ForumMain";
 function Forum() {
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", mt: "100px" }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        pt: "100px",
+        backgroundColor: "var(--bg-primary)",
+      }}
+    >
       <Container>
         <Grid container spacing={2} sx={{ width: "100%" }}>
           <Grid item xs={3}>

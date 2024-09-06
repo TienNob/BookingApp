@@ -15,7 +15,7 @@ import TicketDetail from "./components/ticket/TicketDetail";
 import ForumProfile from "./components/forum/ForumProfile";
 import { Button } from "@mui/material";
 import ScrollTop from "./components/ScrollTop";
-
+import ChatBox from "./components/forum/forumLeft/ChatBox";
 function App() {
   const location = useLocation();
   const hideHeaderFooter =
@@ -25,7 +25,10 @@ function App() {
   const hideFooter =
     hideHeaderFooter ||
     location.pathname === "/forum" ||
-    location.pathname === "/tickets";
+    location.pathname === "/tickets" ||
+    location.pathname === "/chatbox" ||
+    location.pathname.startsWith("/forum-profile");
+
   return (
     <SnackbarProvider
       autoHideDuration={3000}
@@ -54,6 +57,7 @@ function App() {
           <Route path="/forum" element={<Forum />} />
           <Route path="/forum-profile/:userId" element={<ForumProfile />} />
           <Route path="/tickets" element={<Ticket />} />
+          <Route path="/chatbox" element={<ChatBox />} />
           <Route path="/ticket-detail/:id" element={<TicketDetail />} />
         </Routes>
         {!hideFooter && <Footer />} <ScrollTop />

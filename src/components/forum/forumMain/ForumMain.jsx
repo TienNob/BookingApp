@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Box, InputBase, Avatar, IconButton } from "@mui/material";
 import ForumPost from "./ForumPost";
 import ForumContent from "./ForumContent";
 function ForumMain() {
   const [openDialog, setOpenDialog] = useState(false);
+  const [postsData, setPostsData] = useState([]);
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
   const handleOpenDialog = () => {
@@ -19,6 +22,21 @@ function ForumMain() {
   const handleViewProfile = () => {
     navigate(`/forum-profile/${userId}`);
   };
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/api/posts", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setPostsData(response.data);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      }
+    };
+
+    fetchPosts();
+  }, [token]);
+
   return (
     <Box>
       <Box
@@ -59,7 +77,7 @@ function ForumMain() {
           <ForumPost open={openDialog} handleClose={handleCloseDialog} />
         </Box>
       </Box>
-      <ForumContent />
+      <ForumContent postsData={postsData} userId={userId} />
     </Box>
   );
 }

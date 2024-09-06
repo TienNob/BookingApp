@@ -53,6 +53,20 @@ router.get("/actor/:_id", async (req, res) => {
     res.status(500).json({ message: "Server Error", error });
   }
 });
+// Lấy danh sách hình ảnh theo userId
+router.get("/images/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const posts = await Post.find({ actor: userId }).select("image"); // Chỉ lấy trường image
+
+    // Lọc ra những post có image không null
+    const images = posts.filter((post) => post.image).map((post) => post.image);
+
+    res.status(200).json(images);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
+});
 
 // Thêm bài đăng mới (Yêu cầu token)
 router.post(

@@ -11,7 +11,6 @@ import {
   Button,
   Card,
   CardContent,
-  Input,
   IconButton,
   Menu,
   MenuItem,
@@ -20,20 +19,25 @@ import {
   DialogActions,
   CardActionArea,
   CardMedia,
+  AvatarGroup,
 } from "@mui/material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
+import { useSnackbar } from "notistack";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
 import PersonRemoveOutlinedIcon from "@mui/icons-material/PersonRemoveOutlined";
 import coverImgDefault from "../../assets/coverIMG.png";
-
+import ForumContent from "./forumMain/ForumContent";
+import ImagePreview from "../ImagePreview";
 const ForumProfile = () => {
   const { userId } = useParams();
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [images, setImages] = useState([]);
   const [friends, setFriends] = useState([]);
+  const [followers, setFollowers] = useState([]);
   const userIdLocal = localStorage.getItem("userId");
   const [isFriend, setIsFriend] = useState(false);
   const [avatar, setAvatar] = useState(null);
@@ -41,10 +45,13 @@ const ForumProfile = () => {
   const [coverPhoto, setCoverPhoto] = useState(null);
   const [coverPhotoPreview, setCoverPhotoPreview] = useState(null); // New state for preview
   const [menuAnchorEl, setMenuAnchorEl] = useState(null); // Menu anchor state
+  const [activeMenu, setActiveMenu] = useState(null);
   const [openAvatarPreviewDialog, setOpenAvatarPreviewDialog] = useState(false); // New state for avatar dialog
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState("");
   const token = localStorage.getItem("token");
+  const { enqueueSnackbar } = useSnackbar(); // Initialize snackbar
   const navigate = useNavigate();
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -57,11 +64,19 @@ const ForumProfile = () => {
           `http://localhost:8080/api/posts/actor/${userId}`
         );
         setPosts(postsResponse.data);
+        const imagesResponse = await axios.get(
+          `http://localhost:8080/api/posts/images/${userId}`
+        );
+        setImages(imagesResponse.data);
 
         const friendsResponse = await axios.get(
           `http://localhost:8080/api/users/${userId}/friends`
         );
         setFriends(friendsResponse.data.friends);
+        const followerResponse = await axios.get(
+          `http://localhost:8080/api/users/${userId}/followers`
+        );
+        setFollowers(followerResponse.data.followers);
         const friendsUserResponse = await axios.get(
           `http://localhost:8080/api/users/${userIdLocal}/friends`
         );
@@ -102,9 +117,14 @@ const ForumProfile = () => {
           }
         );
         setIsFriend(true);
+        enqueueSnackbar(
+          isFriend ? "Huỷ theo dỗi thành công!" : `Theo dỗi thành công!`,
+          { variant: "success" }
+        );
       }
     } catch (error) {
       console.error("Error managing friend status:", error);
+      enqueueSnackbar("Gặp lỗi khi xử lý", { variant: "error" });
     }
   };
 
@@ -131,11 +151,13 @@ const ForumProfile = () => {
         }
       );
       setCoverPhotoPreview(null);
+      enqueueSnackbar(`Thay đổi ảnh bìa thành công!`, { variant: "success" });
       const userResponse = await axios.get(
         `http://localhost:8080/api/users/${userId}`
       );
       setUser(userResponse.data);
     } catch (error) {
+      enqueueSnackbar(`Thay đổi ảnh bìa thất bại!`, { variant: "error" });
       console.error("Error uploading cover photo:", error);
     }
   };
@@ -153,8 +175,10 @@ const ForumProfile = () => {
         ...prevUser,
         coverPhoto: null,
       }));
+      enqueueSnackbar(`Xoá ảnh bìa thành công!`, { variant: "success" });
       handleMenuClose();
     } catch (error) {
+      enqueueSnackbar(`Xoá ảnh bìa thất bại!`, { variant: "error" });
       console.error("Error deleting cover photo:", error);
     }
   };
@@ -179,8 +203,19 @@ const ForumProfile = () => {
         `http://localhost:8080/api/users/${userId}`
       );
       setUser(userResponse.data);
+      const updatedUser = userResponse.data;
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (storedUser) {
+        storedUser.avatar = updatedUser.avatar;
+        localStorage.setItem("user", JSON.stringify(storedUser));
+      }
+
       setOpenAvatarPreviewDialog(false); // Close dialog after upload
+      enqueueSnackbar(`Thay đổi ảnh đại diện thành công!`, {
+        variant: "success",
+      });
     } catch (error) {
+      enqueueSnackbar(`Thay đổi ảnh đại diện thất bại!`, { variant: "error" });
       console.error("Error uploading avatar:", error);
     }
   };
@@ -197,314 +232,438 @@ const ForumProfile = () => {
     setCoverPhotoPreview(null);
   };
 
-  const handleMenuOpen = (event) => {
+  const handleMenuOpen = (event, menuId) => {
     setMenuAnchorEl(event.currentTarget);
+    setActiveMenu(menuId);
   };
 
   const handleMenuClose = () => {
     setMenuAnchorEl(null);
+    setActiveMenu(null);
   };
   const handleViewProfile = (userId) => {
     navigate(`/forum-profile/${userId}`);
   };
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setOpenModal(true);
+  };
+  const handleCloseModalImage = () => {
+    setOpenModal(false);
+    setSelectedImage("");
+  };
   if (!user) return <p>Loading user data...</p>;
 
   return (
-    <Container sx={{ pt: "100px" }}>
-      <Card>
-        <Box
-          sx={{
-            width: "100%",
-            height: "300px",
-            backgroundImage: `url(${
-              coverPhotoPreview ||
-              (user.coverPhoto
-                ? `http://localhost:8080${user.coverPhoto}`
-                : coverImgDefault)
-            })`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            position: "relative",
-          }}
-        >
-          {userIdLocal === userId ? (
-            <Button
-              variant="contained"
-              onClick={handleMenuOpen}
-              sx={{
-                position: "absolute",
-                right: 16,
-                bottom: 16,
-                borderRadius: "8px",
-                backgroundColor: "var(--grey)",
-                "&:hover": { backgroundColor: "var(--subtext-color)" },
-              }}
-            >
-              <PhotoCamera sx={{ mr: 1 }} /> Thay đổi ảnh bìa
-            </Button>
-          ) : (
-            ""
-          )}
-
-          <Menu
-            anchorEl={menuAnchorEl}
-            open={Boolean(menuAnchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem>
-              <label
-                htmlFor="cover-photo-upload"
-                style={{
-                  width: "100%",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <FileUploadIcon sx={{ mr: 1 }} /> Tải ảnh lên
-                <input
-                  id="cover-photo-upload"
-                  type="file"
-                  hidden
-                  onChange={handleFileChange}
-                />
-              </label>
-            </MenuItem>
-            <MenuItem onClick={handleDeleteCoverPhoto}>
-              <DeleteForeverIcon sx={{ mr: 1 }} />
-              Xóa ảnh bìa
-            </MenuItem>
-          </Menu>
-          {coverPhotoPreview && (
-            <Box
-              sx={{
-                position: "absolute",
-                right: 16,
-                top: 16,
-                display: "flex",
-                gap: 1,
-              }}
-            >
-              <Button
-                variant="contained"
-                sx={{
-                  borderRadius: "8px",
-
-                  backgroundColor: "var(--primary-color)",
-                  "&:hover": { backgroundColor: "var(--hover-color)" },
-                }}
-                onClick={handleUploadCover}
-              >
-                Xác nhận
-              </Button>
-              <Button
-                variant="contain"
-                sx={{
-                  borderRadius: "8px",
-                  color: "#fff",
-                  backgroundColor: "var(--grey)",
-                  "&:hover": {
-                    backgroundColor: "var(--subtext-color)",
-                  },
-                }}
-                onClick={handleCancelUpload}
-              >
-                Hủy
-              </Button>
-            </Box>
-          )}
-        </Box>
-        <Box display="flex" alignItems="center" mt={-7} p={3}>
-          <Box
-            position="relative"
-            onClick={
-              userIdLocal === userId
-                ? () => setOpenAvatarPreviewDialog(true)
-                : null
-            }
-          >
-            <Avatar
-              src={`http://localhost:8080${user.avatar}` || ""}
-              sx={{
-                width: 150,
-                height: 150,
-                border: "5px solid white",
-                transition: "all ease 0.3s",
-                "&:hover": { filter: "brightness(95%)", cursor: "pointer" },
-              }}
-            />
-
-            <Box
-              sx={{
-                position: "absolute",
-                right: 0,
-                bottom: 25,
-                width: "35px",
-                height: "35px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "var(--bg-primary)",
-                borderRadius: "50%",
-              }}
-            >
-              <PhotoCamera />
-            </Box>
-          </Box>
+    <Box sx={{ backgroundColor: "var(--bg-primary)" }}>
+      <Container sx={{ pt: "100px" }}>
+        <Card>
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "end",
               width: "100%",
+              height: "300px",
+              backgroundImage: `url(${
+                coverPhotoPreview ||
+                (user.coverPhoto
+                  ? `http://localhost:8080${user.coverPhoto}`
+                  : coverImgDefault)
+              })`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              position: "relative",
             }}
-            ml={3}
           >
-            <Box>
-              <Typography variant="h4">
-                {user.firstName} {user.lastName}
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                {user.followers.length} Người theo dỗi
-              </Typography>
-            </Box>
-            {userIdLocal !== userId ? (
+            {userIdLocal === userId ? (
               <Button
                 variant="contained"
-                onClick={handleAddOrRemoveFriend}
+                onClick={(event) => handleMenuOpen(event, "coverPhotoMenu")}
                 sx={{
+                  position: "absolute",
+                  right: 16,
+                  bottom: 16,
                   borderRadius: "8px",
-                  backgroundColor: "var(--primary-color)",
-                  "&:hover": { backgroundColor: "var(--hover-color)" },
+                  backgroundColor: "var(--grey)",
+                  "&:hover": { backgroundColor: "var(--subtext-color)" },
                 }}
               >
-                {isFriend ? (
-                  <>
-                    <PersonRemoveOutlinedIcon sx={{ mr: 1 }} /> Hủy theo dõi
-                  </>
-                ) : (
-                  <>
-                    <PersonAddOutlinedIcon sx={{ mr: 1 }} /> Theo dõi
-                  </>
-                )}
+                <PhotoCamera sx={{ mr: 1 }} /> Thay đổi ảnh bìa
               </Button>
             ) : (
               ""
             )}
-          </Box>
-        </Box>
-      </Card>
-      <Grid container spacing={3} mt={3}>
-        <Grid item xs={12} md={4}>
-          <Box mt={3}>
-            <Typography variant="h6">Đang theo dỗi</Typography>
-            <Grid container spacing={2} mt={1}>
-              {friends.map((friend) => (
-                <Grid item xs={4} md={3} lg={4} key={friend._id}>
-                  <Card
-                    onClick={() => {
-                      handleViewProfile(friend._id);
-                    }}
-                  >
-                    <CardActionArea>
-                      <Avatar
-                        sx={{ width: "100%", height: 140, borderRadius: 0 }}
-                        alt={`${friend.firstName} ${friend.lastName}`}
-                        src={
-                          friend.avatar
-                            ? `http://localhost:8080${friend.avatar}`
-                            : undefined
-                        }
-                      />
-                      <CardContent>
-                        <Typography variant="p" component="div" align="center">
-                          {friend.firstName} {friend.lastName}
-                        </Typography>
-                      </CardContent>
-                    </CardActionArea>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        </Grid>
-        <Grid item xs={12} md={8}>
-          <Box mt={3}>
-            {posts.length === 0 ? (
-              <Typography variant="h6" color="textSecondary">
-                Không có bài viết
-              </Typography>
-            ) : (
-              posts.map((post) => (
-                <Card key={post._id} sx={{ mb: 3 }}>
-                  <CardContent>
-                    <Typography variant="body2" color="textSecondary">
-                      {new Date(post.createdAt).toLocaleString()}
-                    </Typography>
-                    <Typography variant="h6" gutterBottom>
-                      {post.title}
-                    </Typography>
-                    <Typography variant="body1">{post.content}</Typography>
-                  </CardContent>
-                </Card>
-              ))
+
+            <Menu
+              anchorEl={menuAnchorEl}
+              open={Boolean(menuAnchorEl && activeMenu === "coverPhotoMenu")}
+              onClose={handleMenuClose}
+            >
+              <MenuItem>
+                <label
+                  htmlFor="cover-photo-upload"
+                  style={{
+                    width: "100%",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <FileUploadIcon sx={{ mr: 1 }} /> Tải ảnh lên
+                  <input
+                    id="cover-photo-upload"
+                    type="file"
+                    hidden
+                    onChange={handleFileChange}
+                  />
+                </label>
+              </MenuItem>
+              <MenuItem onClick={handleDeleteCoverPhoto}>
+                <DeleteForeverIcon sx={{ mr: 1 }} />
+                Xóa ảnh bìa
+              </MenuItem>
+            </Menu>
+            {coverPhotoPreview && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  right: 16,
+                  top: 16,
+                  display: "flex",
+                  gap: 1,
+                }}
+              >
+                <Button
+                  variant="contained"
+                  sx={{
+                    borderRadius: "8px",
+
+                    backgroundColor: "var(--primary-color)",
+                    "&:hover": { backgroundColor: "var(--hover-color)" },
+                  }}
+                  onClick={handleUploadCover}
+                >
+                  Xác nhận
+                </Button>
+                <Button
+                  variant="contain"
+                  sx={{
+                    borderRadius: "8px",
+                    color: "#fff",
+                    backgroundColor: "var(--grey)",
+                    "&:hover": {
+                      backgroundColor: "var(--subtext-color)",
+                    },
+                  }}
+                  onClick={handleCancelUpload}
+                >
+                  Hủy
+                </Button>
+              </Box>
             )}
           </Box>
-        </Grid>
-      </Grid>
-      <Dialog
-        open={openAvatarPreviewDialog}
-        onClose={() => setOpenAvatarPreviewDialog(false)}
-      >
-        <DialogContent>
-          {avatarPreview && (
+          <Box
+            display="flex"
+            alignItems="center"
+            sx={{ flexDirection: { xs: "column", md: "row" } }}
+            mt={-7}
+            p={3}
+          >
+            <Box
+              position="relative"
+              onClick={
+                userIdLocal === userId
+                  ? () => setOpenAvatarPreviewDialog(true)
+                  : null
+              }
+            >
+              <Avatar
+                src={`http://localhost:8080${user.avatar}` || ""}
+                sx={{
+                  width: 150,
+                  height: 150,
+                  border: "5px solid white",
+                  transition: "all ease 0.3s",
+                  "&:hover": { filter: "brightness(95%)", cursor: "pointer" },
+                }}
+              />
+
+              {userIdLocal === userId ? (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: 25,
+                    width: "35px",
+                    height: "35px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: "var(--bg-primary)",
+                    borderRadius: "50%",
+                  }}
+                >
+                  <PhotoCamera />
+                </Box>
+              ) : (
+                ""
+              )}
+            </Box>
             <Box
               sx={{
                 display: "flex",
-                justifyContent: "center",
-                mb: 2,
+                justifyContent: "space-between",
+                flexDirection: { xs: "column", md: "row" },
+                alignItems: { xs: "center", md: "end" },
+                ml: { xs: 0, md: 3 },
+                pt: 2,
+                width: "100%",
               }}
             >
-              <img
-                src={avatarPreview}
-                alt="Avatar Preview"
-                style={{
-                  objectFit: "cover",
-                  width: "400px",
-                  height: "400px",
-                  borderRadius: "50%",
-                }}
-              />
+              <Box>
+                <Typography variant="h4">
+                  {user.firstName} {user.lastName}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  {user.followers.length} Người theo dỗi
+                </Typography>
+                <AvatarGroup sx={{ justifyContent: "flex-end" }} max={4}>
+                  {followers.map((follower) => (
+                    <Avatar
+                      sx={{
+                        width: "24px",
+                        height: "24px",
+                      }}
+                      key={follower._id}
+                      alt={`${follower.firstName} ${follower.lastName}`}
+                      src={
+                        follower.avatar
+                          ? `http://localhost:8080${follower.avatar}`
+                          : undefined
+                      }
+                    ></Avatar>
+                  ))}
+                </AvatarGroup>
+              </Box>
+              <Box>
+                {userIdLocal !== userId ? (
+                  <Button
+                    variant="contained"
+                    onClick={handleAddOrRemoveFriend}
+                    sx={{
+                      borderRadius: "8px",
+                      mt: 1,
+                      backgroundColor: "var(--primary-color)",
+                      "&:hover": { backgroundColor: "var(--hover-color)" },
+                    }}
+                  >
+                    {isFriend ? (
+                      <>
+                        <PersonRemoveOutlinedIcon sx={{ mr: 1 }} /> Hủy theo dõi
+                      </>
+                    ) : (
+                      <>
+                        <PersonAddOutlinedIcon sx={{ mr: 1 }} /> Theo dõi
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  ""
+                )}
+                <IconButton
+                  aria-label="more"
+                  aria-controls="user-actions-menu"
+                  aria-haspopup="true"
+                  onClick={(event) => handleMenuOpen(event, "menuMore")}
+                  sx={{ ml: 1, mt: 1 }}
+                >
+                  <MoreVertIcon />
+                </IconButton>
+                <Menu
+                  id="user-actions-menu"
+                  anchorEl={menuAnchorEl}
+                  keepMounted
+                  open={Boolean(menuAnchorEl && activeMenu === "menuMore")}
+                  onClose={handleMenuClose}
+                >
+                  <MenuItem onClick={() => setOpenAvatarPreviewDialog(true)}>
+                    Thay đổi ảnh đại diện
+                  </MenuItem>
+                </Menu>
+              </Box>
             </Box>
-          )}
-          <Button
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: "var(--primary-color)",
-              "&:hover": {
-                backgroundColor: "var(--hover-color)",
-              },
-            }}
-            variant="contained"
-            component="label"
-          >
-            <FileUploadIcon />
-            Chọn hình ảnh từ file
-            <input type="file" hidden onChange={handleAvatarFileChange} />
-          </Button>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenAvatarPreviewDialog(false)}>Huỷ</Button>
-          <Button
-            onClick={handleUploadAvatar}
-            color="primary"
-            disabled={!avatar}
-          >
-            Xác Nhận
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+          </Box>
+        </Card>
+
+        <Grid container spacing={3} mt={1}>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography mb={2} variant="h6">
+                  Hình ảnh
+                </Typography>
+                <Grid container spacing={1}>
+                  {images.length > 1 ? (
+                    images.map((image, index) => (
+                      <Grid item xs={4} sm={3} md={4} key={index}>
+                        <Card
+                          sx={{
+                            position: "relative",
+                            height: 0,
+                            paddingTop: "100%",
+                          }}
+                        >
+                          <CardMedia
+                            onClick={() =>
+                              handleImageClick(`http://localhost:8080${image}`)
+                            }
+                            component="img"
+                            image={`http://localhost:8080${image}`}
+                            alt={"Hình ảnh bị lỗi"}
+                            sx={{
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        </Card>
+                      </Grid>
+                    ))
+                  ) : (
+                    <Typography
+                      sx={{ textAlign: "center", width: "100%" }}
+                      variant="h6"
+                      color="textSecondary"
+                    >
+                      Không có hình ảnh
+                    </Typography>
+                  )}
+                </Grid>
+              </CardContent>
+            </Card>
+            <Card sx={{ mt: 2 }}>
+              <CardContent>
+                <Typography variant="h6">Đang theo dỗi</Typography>
+                <Grid container spacing={2} mt={1}>
+                  {friends.map((friend) => (
+                    <Grid item xs={4} md={4} lg={4} key={friend._id}>
+                      <Card
+                        onClick={() => {
+                          handleViewProfile(friend._id);
+                        }}
+                      >
+                        <CardActionArea>
+                          <Avatar
+                            sx={{ width: "100%", height: 140, borderRadius: 0 }}
+                            alt={`${friend.firstName} ${friend.lastName}`}
+                            src={
+                              friend.avatar
+                                ? `http://localhost:8080${friend.avatar}`
+                                : undefined
+                            }
+                          />
+                          <CardContent>
+                            <Typography
+                              variant="p"
+                              component="div"
+                              align="center"
+                            >
+                              {friend.firstName} {friend.lastName}
+                            </Typography>
+                          </CardContent>
+                        </CardActionArea>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <Box>
+              <Card
+                sx={{
+                  mb: 2,
+                  pb: 0,
+                  boxShadow: "0 0 2px rgba(27, 39, 61, 0.25)",
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h6">Bài viết</Typography>
+                </CardContent>
+              </Card>
+              {posts.length === 0 ? (
+                <Typography variant="h6" color="textSecondary">
+                  Không có bài viết
+                </Typography>
+              ) : (
+                <ForumContent postsData={posts} userId={userIdLocal} />
+              )}
+            </Box>
+          </Grid>
+        </Grid>
+        <Dialog
+          open={openAvatarPreviewDialog}
+          onClose={() => setOpenAvatarPreviewDialog(false)}
+        >
+          <DialogContent>
+            {avatarPreview && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  mb: 2,
+                }}
+              >
+                <img
+                  src={avatarPreview}
+                  alt="Avatar Preview"
+                  style={{
+                    objectFit: "cover",
+                    width: "400px",
+                    height: "400px",
+                    borderRadius: "50%",
+                  }}
+                />
+              </Box>
+            )}
+            <Button
+              sx={{
+                borderRadius: "8px",
+                backgroundColor: "var(--primary-color)",
+                "&:hover": {
+                  backgroundColor: "var(--hover-color)",
+                },
+              }}
+              variant="contained"
+              component="label"
+            >
+              <FileUploadIcon />
+              Chọn hình ảnh từ file
+              <input type="file" hidden onChange={handleAvatarFileChange} />
+            </Button>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenAvatarPreviewDialog(false)}>
+              Huỷ
+            </Button>
+            <Button
+              onClick={handleUploadAvatar}
+              color="primary"
+              disabled={!avatar}
+            >
+              Xác Nhận
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <ImagePreview
+          open={openModal}
+          imageUrl={selectedImage}
+          onClose={handleCloseModalImage}
+        />
+      </Container>
+    </Box>
   );
 };
 

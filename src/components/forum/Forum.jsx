@@ -1,6 +1,8 @@
 import React from "react";
 import { Box, Grid, Container } from "@mui/material";
 import ForumMain from "./forumMain/ForumMain";
+import ForumLeft from "./forumLeft/ForumLeft";
+import ForumRight from "./forumRight/ForumRight";
 function Forum() {
   return (
     <Box
@@ -17,13 +19,14 @@ function Forum() {
             <Box
               sx={{
                 position: "sticky",
-                top: 0,
-                height: "100vh",
+                top: "90px",
+                height: "calc(100vh - 90px)", // Để tính toán chiều cao khi cuộn
+                width: "250px",
                 overflowY: "auto",
+                backgroundColor: "var(--bg-sidebar)",
               }}
             >
-              {/* Left fixed content */}
-              <Box>Left Fixed Content</Box>
+              <ForumLeft />
             </Box>
           </Grid>
           <Grid item xs={6}>
@@ -36,10 +39,10 @@ function Forum() {
                 top: 0,
                 height: "100vh",
                 overflowY: "auto",
+                backgroundColor: "var(--bg-sidebar)",
               }}
             >
-              {/* Right fixed content */}
-              <Box>Right Fixed Content</Box>s
+              <ForumRight />
             </Box>
           </Grid>
         </Grid>

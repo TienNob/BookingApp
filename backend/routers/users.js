@@ -50,7 +50,9 @@ router.post("/", async (req, res) => {
 });
 router.get("/all", async (req, res) => {
   try {
-    const users = await User.find().select("firstName lastName phone friends");
+    const users = await User.find().select(
+      "firstName lastName phone friends avatar followers"
+    );
     res.status(200).send(users);
   } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });
@@ -175,13 +177,15 @@ router.delete("/:id/friends/:friendId", authenticateToken, async (req, res) => {
     res.status(500).send({ message: "Internal Server Error" });
   }
 });
-router.get("/:id/followers/count", async (req, res) => {
+router.get("/:id/followers", async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id)
+      .populate("followers", "firstName lastName avatar") // Populate followers with specific fields
+      .select("followers"); // Only select the followers field
+
     if (!user) return res.status(404).send({ message: "User not found" });
 
-    const followersCount = user.getFollowersCount(); // Use the method from the model
-    res.status(200).send({ followersCount });
+    res.status(200).send({ followers: user.followers });
   } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });
   }

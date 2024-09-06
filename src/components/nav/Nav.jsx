@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
 import PermIdentityIcon from "@mui/icons-material/PermIdentity";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -64,6 +65,7 @@ function Nav() {
   };
   const handleViewProfile = () => {
     navigate(`/forum-profile/${userId}`);
+    handleCloseUserMenu();
   };
 
   return (
@@ -198,6 +200,23 @@ function Nav() {
                       {user.lastName}
                     </Typography>
                   </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      navigate(`/chatbox`);
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "start",
+                        padding: "4px 14px 4px 4px",
+                      }}
+                    >
+                      <ChatBubbleOutlineIcon sx={{ mr: 1 }} /> Tin nhắn
+                    </Typography>
+                  </MenuItem>
+
                   <MenuItem onClick={handleLogout}>
                     <Typography
                       sx={{

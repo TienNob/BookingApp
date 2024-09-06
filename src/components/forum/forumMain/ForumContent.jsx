@@ -24,11 +24,12 @@ import EastOutlinedIcon from "@mui/icons-material/EastOutlined";
 import { formatDistanceToNow } from "date-fns";
 import vi from "date-fns/locale/vi";
 import notIMG from "../../../assets/cannotImg.jpg";
+import ImagePreview from "../../ImagePreview";
 
 const formatDistanceToNowInVietnamese = (date) => {
   return formatDistanceToNow(date, { locale: vi, addSuffix: true });
 };
-const ForumContent = () => {
+const ForumContent = ({ postsData, userId }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState("");
@@ -37,32 +38,24 @@ const ForumContent = () => {
   const [visibleCount, setVisibleCount] = useState(3); // Number of posts to show initially
   const [loadingMore, setLoadingMore] = useState(false); // Loading state for more posts
   const [hasMorePosts, setHasMorePosts] = useState(true); // Flag to check if more posts are available
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState("");
   const token = localStorage.getItem("token");
-  const userId = localStorage.getItem("userId");
+  const user = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/api/posts");
-        const postsData = response.data;
+    if (postsData) {
+      const updatedHeartedPosts = new Set(
+        postsData
+          .filter((post) => post.hearts.includes(userId))
+          .map((post) => post._id)
+      );
 
-        const updatedHeartedPosts = new Set(
-          postsData
-            .filter((post) => post.hearts.includes(userId))
-            .map((post) => post._id)
-        );
-
-        setHeartedPosts(updatedHeartedPosts);
-        setPosts(postsData);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, [userId]);
+      setHeartedPosts(updatedHeartedPosts);
+      setPosts(postsData);
+      setLoading(false);
+    }
+  }, [postsData, userId]);
 
   const handleHeart = async (postId) => {
     try {
@@ -176,6 +169,14 @@ const ForumContent = () => {
   const handleViewProfile = (userId) => {
     navigate(`/forum-profile/${userId}`);
   };
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setOpenModal(true);
+  };
+  const handleCloseModalImage = () => {
+    setOpenModal(false);
+    setSelectedImage("");
+  };
   return (
     <Grid container spacing={2}>
       {loading
@@ -227,7 +228,7 @@ const ForumContent = () => {
                       <Typography
                         variant="h6"
                         component="span"
-                        onClick={() => handleViewProfile(post.actor)}
+                        onClick={() => handleViewProfile(post.actor._id)}
                         sx={{
                           cursor: "pointer",
 
@@ -255,6 +256,9 @@ const ForumContent = () => {
                       component="img"
                       height="200"
                       sx={{ objectFit: "contain" }}
+                      onClick={() =>
+                        handleImageClick(`http://localhost:8080${post.image}`)
+                      }
                       image={`http://localhost:8080${post.image}` || notIMG}
                       alt="Post image"
                       onError={(e) => {
@@ -389,6 +393,11 @@ const ForumContent = () => {
                         fullWidth
                         placeholder="Bình luận bài viết"
                         value={newComment}
+                        onKeyUp={(e) => {
+                          if (e.key === "Enter") {
+                            handleComment(post._id);
+                          }
+                        }}
                         onChange={(e) => setNewComment(e.target.value)}
                       />
                       <IconButton
@@ -433,8 +442,9 @@ const ForumContent = () => {
                                   handleViewProfile(comment.user._id)
                                 }
                                 src={
-                                  `http://localhost:8080${comment.user.avatar}` ||
-                                  ""
+                                  comment.user._id === userId
+                                    ? `http://localhost:8080${user.avatar}`
+                                    : `http://localhost:8080${comment.user.avatar}`
                                 }
                               />
                               <Box>
@@ -491,6 +501,11 @@ const ForumContent = () => {
           </Card>{" "}
         </Grid>
       )}
+      <ImagePreview
+        open={openModal}
+        imageUrl={selectedImage}
+        onClose={handleCloseModalImage}
+      />
     </Grid>
   );
 };

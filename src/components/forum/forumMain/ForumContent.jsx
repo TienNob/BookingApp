@@ -394,7 +394,7 @@ const ForumContent = ({ postsData, userId }) => {
                         placeholder="Bình luận bài viết"
                         value={newComment}
                         onKeyUp={(e) => {
-                          if (e.key === "Enter") {
+                          if (e.key === "Enter" && newComment) {
                             handleComment(post._id);
                           }
                         }}

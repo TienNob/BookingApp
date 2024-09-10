@@ -32,7 +32,7 @@ const ChatBox = () => {
   const [newMessageFlags, setNewMessageFlags] = useState(getNewMessageFlags()); // Khôi phục trạng thái từ localStorage
   const userId = localStorage.getItem("userId");
   const messagesEndRef = useRef(null);
-
+  console.log(newMessageFlags);
   // Cập nhật trạng thái tin nhắn mới vào localStorage
   const updateNewMessageFlags = (flags) => {
     localStorage.setItem("newMessageFlags", JSON.stringify(flags));
@@ -189,6 +189,7 @@ const ChatBox = () => {
         ...prevFlags,
         [friend._id]: false,
       };
+
       updateNewMessageFlags(updatedFlags); // Cập nhật localStorage
       return updatedFlags;
     });

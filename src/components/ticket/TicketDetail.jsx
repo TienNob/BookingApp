@@ -13,6 +13,8 @@ import {
   InputAdornment,
   Grid,
   Breadcrumbs,
+  Avatar,
+  CardMedia,
   Link,
 } from "@mui/material";
 import axios from "axios";
@@ -21,14 +23,15 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
 const TicketDetail = () => {
   const { id } = useParams(); // Lấy ID từ URL
+  const [images, setImages] = useState([]);
   const [trip, setTrip] = useState(null);
+  const [user, setUser] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [seatCount, setSeatCount] = useState("");
   const [seatOrder, setSeatOrder] = useState("");
   const [error, setError] = useState("");
   const [activeButtonId, setActiveButtonId] = useState(null);
-  console.log(activeButtonId);
   useEffect(() => {
     const fetchTripDetail = async () => {
       try {
@@ -36,14 +39,19 @@ const TicketDetail = () => {
           `http://localhost:8080/api/trips/${id}`
         );
         setTrip(response.data);
+
+        setUser(response.data.user);
+        const imagesResponse = await axios.get(
+          `http://localhost:8080/api/posts/images/${response.data.user._id}`
+        );
+        setImages(imagesResponse.data);
       } catch (error) {
         console.error("Error fetching trip detail:", error);
       }
     };
-
     fetchTripDetail();
   }, [id]);
-  console.log(selectedRoute);
+  console.log(user);
   const handleSeatCountChange = (event) => {
     const value = event.target.value;
     if (selectedRoute) {
@@ -75,6 +83,7 @@ const TicketDetail = () => {
       handleClose();
     }
   };
+
   const open = Boolean(anchorEl);
   const idPopover = open ? "simple-popover" : undefined;
 
@@ -200,6 +209,101 @@ const TicketDetail = () => {
             ))}
           </Box>
         </CardContent>
+      </Card>
+      <Card sx={{ mt: 3 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Box p={3} display="flex" flexDirection="column">
+              <Typography variant="h5" mb={3} gutterBottom>
+                Thông tin người dùng
+              </Typography>
+              {user && (
+                <>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Avatar
+                      src={
+                        user.avatar
+                          ? `http://localhost:8080${user.avatar}`
+                          : undefined
+                      }
+                      sx={{ mr: 2 }}
+                    />
+                    <Typography variant="h6">
+                      {user.firstName} {user.lastName}
+                    </Typography>
+                  </Box>
+
+                  <Typography variant="body1" color="textSecondary">
+                    Số điện thoại: {user.phone}
+                  </Typography>
+                  <Typography variant="body1" color="textSecondary">
+                    Số người theo dõi: {user.followers.length}
+                  </Typography>
+                </>
+              )}
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Grid container spacing={1} sx={{ p: 2 }}>
+              {images.slice(0, 3).map((image, index) => (
+                <Grid item xs={4} sm={4} md={4} key={index}>
+                  <Card
+                    sx={{
+                      position: "relative",
+                      height: 0,
+                      paddingTop: "100%",
+                    }}
+                  >
+                    <CardMedia
+                      onClick={() =>
+                        handleImageClick(`http://localhost:8080${image}`)
+                      }
+                      component="img"
+                      image={`http://localhost:8080${image}`}
+                      alt={"Hình ảnh bị lỗi"}
+                      sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                    {index === 2 && images.length > 3 && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          bgcolor: "rgba(0, 0, 0, 0.5)",
+                          color: "white",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          fontSize: "1.5rem",
+                        }}
+                      >
+                        +{images.length - 3}
+                      </Box>
+                    )}
+                  </Card>
+                </Grid>
+              ))}
+              {images.length === 0 && (
+                <Typography
+                  sx={{ textAlign: "center", width: "100%" }}
+                  variant="h6"
+                  color="textSecondary"
+                >
+                  Không có hình ảnh
+                </Typography>
+              )}
+            </Grid>
+          </Grid>
+        </Grid>
       </Card>
 
       <Grid container spacing={2} mt={2}>

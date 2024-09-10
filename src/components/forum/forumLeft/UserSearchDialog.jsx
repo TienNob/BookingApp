@@ -1,5 +1,4 @@
-// UserSearchDialog.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -15,11 +14,32 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"; // Import axios
 
-function UserSearchDialog({ open, onClose, users, loading, error }) {
+function UserSearchDialog({ open, onClose }) {
+  const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true); // Start loading
+      try {
+        const response = await axios.get("http://localhost:8080/api/users/all");
+        setUsers(response.data);
+      } catch (err) {
+        setError("Không thể tải dữ liệu người dùng."); // Set error
+      } finally {
+        setLoading(false); // Stop loading
+      }
+    };
+
+    if (open) {
+      fetchUsers();
+    }
+  }, [open]); // Fetch users when the dialog opens
 
   // Xử lý tìm kiếm
   const handleSearch = (e) => {
@@ -28,11 +48,16 @@ function UserSearchDialog({ open, onClose, users, loading, error }) {
     if (query.trim() === "") {
       setFilteredUsers([]); // Không hiển thị kết quả nếu không có từ khóa tìm kiếm
     } else {
-      const filtered = users.filter(
-        (user) =>
-          user.firstName.toLowerCase().includes(query) ||
-          user.phone.includes(query)
-      );
+      const filtered = users.filter((user) => {
+        const fullName = `${user.firstName || ""} ${
+          user.lastName || ""
+        }`.toLowerCase();
+
+        const phone = user.phone || ""; // Nếu không có số điện thoại thì để chuỗi rỗng
+
+        return fullName.includes(query) || phone.includes(query);
+      });
+
       setFilteredUsers(filtered);
     }
   };
@@ -56,7 +81,6 @@ function UserSearchDialog({ open, onClose, users, loading, error }) {
           label="Nhập tên hoặc số điện thoại"
           value={searchQuery}
           onChange={handleSearch}
-          disabled={loading || error}
         />
         {loading ? (
           <CircularProgress sx={{ display: "block", margin: "20px auto" }} />
@@ -84,7 +108,7 @@ function UserSearchDialog({ open, onClose, users, loading, error }) {
                   </ListItemAvatar>
                   <ListItemText
                     primary={`${user.firstName}  ${user.lastName}`}
-                    secondary={`${user.followers.length} Đang theo dỗi`}
+                    secondary={`${user.followers.length} Đang theo dõi`}
                   />
                 </ListItemButton>
               ))

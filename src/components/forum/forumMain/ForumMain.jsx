@@ -49,12 +49,10 @@ function ForumMain() {
         <IconButton sx={{ p: 0, mr: 1 }}>
           <Avatar
             sx={{
-              bgcolor: "var(--secondary-color)",
               cursor: "pointer",
               transition: "all linear 0.3s",
               "&:hover": { opacity: 0.7 },
             }}
-            alt={user.firstName}
             src={`http://localhost:8080${user.avatar}` || ""}
             onClick={handleViewProfile}
           />

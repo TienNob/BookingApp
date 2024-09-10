@@ -243,6 +243,7 @@ const ForumProfile = () => {
   };
   const handleViewProfile = (userId) => {
     navigate(`/forum-profile/${userId}`);
+    window.location.reload();
   };
   const handleImageClick = (imageUrl) => {
     setSelectedImage(imageUrl);
@@ -501,7 +502,7 @@ const ForumProfile = () => {
                   Hình ảnh
                 </Typography>
                 <Grid container spacing={1}>
-                  {images.length > 1 ? (
+                  {images.length > 0 ? (
                     images.map((image, index) => (
                       <Grid item xs={4} sm={3} md={4} key={index}>
                         <Card

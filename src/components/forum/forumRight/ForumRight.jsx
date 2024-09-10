@@ -21,7 +21,7 @@ const ForumRight = () => {
           user._id !== userId &&
           !user.followers.some((follower) => follower === userId)
       );
-      // Assuming you want to display 3 random users
+      // Assuming you want to display 5 random users
       const randomUsers = nonFriendUsers
         .sort(() => 0.5 - Math.random())
         .slice(0, 5);
@@ -31,33 +31,68 @@ const ForumRight = () => {
     }
   };
 
-  // Function to follow a user
-  const handleFollow = async (id) => {
+  // Function to follow/unfollow a user
+  const handleFollowToggle = async (user) => {
     try {
-      const response = await axios.post(
-        `http://localhost:8080/api/users/${userId}/friends`,
-        {
-          friendId: id, // Pass the user ID to follow
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+      if (user.followers.some((follower) => follower === userId)) {
+        // Unfollow user
+        await axios.delete(
+          `http://localhost:8080/api/users/${userId}/friends/${user._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        // Update user's followers list by removing the current userId
+        setSuggestedUsers((prevUsers) =>
+          prevUsers.map((u) =>
+            u._id === user._id
+              ? {
+                  ...u,
+                  followers: u.followers.filter(
+                    (follower) => follower !== userId
+                  ),
+                }
+              : u
+          )
+        );
+      } else {
+        // Follow user
+        await axios.post(
+          `http://localhost:8080/api/users/${userId}/friends`,
+          {
+            friendId: user._id,
           },
-        }
-      );
-      console.log("Followed user successfully:", response.data);
-      fetchUsers();
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        // Update user's followers list by adding the current userId
+        setSuggestedUsers((prevUsers) =>
+          prevUsers.map((u) =>
+            u._id === user._id
+              ? { ...u, followers: [...u.followers, userId] }
+              : u
+          )
+        );
+      }
     } catch (error) {
-      console.error("Error following user:", error);
+      console.error("Error following/unfollowing user:", error);
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchUsers(); // Then fetch users and exclude friends
-    };
+  // Function to remove a suggested user
+  const handleRemove = (id) => {
+    setSuggestedUsers((prevUsers) =>
+      prevUsers.filter((user) => user._id !== id)
+    );
+  };
 
-    fetchData();
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
   return (
@@ -80,14 +115,14 @@ const ForumRight = () => {
               <Box sx={{ display: "flex", mb: 1 }}>
                 <Avatar
                   src={`http://localhost:8080${user.avatar}`}
-                  sx={{ mr: 2 }}
+                  sx={{ mr: 2, width: "45px", height: "45px" }}
                 />
                 <Box>
                   <Typography variant="body1">
                     {user.firstName} {user.lastName}
                   </Typography>
                   <Typography color="text.secondary" variant="caption">
-                    {user.followers.length} người theo dỗi
+                    {user.followers.length} người theo dõi
                   </Typography>
                 </Box>
               </Box>
@@ -105,9 +140,11 @@ const ForumRight = () => {
                     py: 1,
                     mr: 1,
                   }}
-                  onClick={() => handleFollow(user._id)}
+                  onClick={() => handleFollowToggle(user)}
                 >
-                  Theo dỗi
+                  {user.followers.some((follower) => follower === userId)
+                    ? "Huỷ theo dõi"
+                    : "Theo dõi"}
                 </Button>
                 <Button
                   variant="contained"
@@ -122,7 +159,7 @@ const ForumRight = () => {
                     px: 2,
                     py: 1,
                   }}
-                  onClick={() => handleFollow(user._id)}
+                  onClick={() => handleRemove(user._id)}
                 >
                   Xoá
                 </Button>

@@ -14,7 +14,7 @@ router.get("/", async (req, res) => {
 });
 router.get("/:id", async (req, res) => {
   try {
-    const trip = await Trip.findById(req.params.id);
+    const trip = await Trip.findById(req.params.id).populate("user"); // Lấy thông tin chi tiết của user
 
     if (!trip) {
       return res.status(404).json({ message: "Trip not found" });
@@ -38,6 +38,8 @@ router.post("/", authenticateToken, async (req, res) => {
   } = req.body;
 
   try {
+    const user = req.user._id; // Lấy user từ token
+
     const trip = new Trip({
       seatsAvailable,
       totalSeats,
@@ -45,6 +47,7 @@ router.post("/", authenticateToken, async (req, res) => {
       costPerKm,
       prices,
       departureTime,
+      user,
     });
     await trip.save();
     res.status(201).json(trip);
@@ -65,6 +68,8 @@ router.put("/:id", authenticateToken, async (req, res) => {
   } = req.body;
 
   try {
+    const user = req.user._id; // Lấy user từ token
+
     const trip = await Trip.findByIdAndUpdate(
       req.params.id,
       {
@@ -74,6 +79,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
         costPerKm,
         prices,
         departureTime,
+        user,
       },
       { new: true, runValidators: true }
     );

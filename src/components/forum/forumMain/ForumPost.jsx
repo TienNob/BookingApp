@@ -210,6 +210,7 @@ function ForumPost({ open, handleClose }) {
       });
       return;
     }
+
     if (showTripDetails) {
       if (!availableSeats || !costPerKm || !departureTime || !totalSeats) {
         enqueueSnackbar("Vui lòng nhập đầy đủ thông tin chuyến đi", {
@@ -219,6 +220,12 @@ function ForumPost({ open, handleClose }) {
       }
       if (tripSteps.length === 1) {
         enqueueSnackbar("Phải có ít nhất 2 điểm trong chuyến đi", {
+          variant: "error",
+        });
+        return;
+      }
+      if (availableSeats > totalSeats) {
+        enqueueSnackbar("số ghế trống không được lớn hơn tổng số ghế", {
           variant: "error",
         });
         return;

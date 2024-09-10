@@ -26,6 +26,11 @@ const tripSchema = new mongoose.Schema(
         required: true,
       },
     ],
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // Tham chiếu đến mô hình User
+      required: true, // Bắt buộc phải có người đăng
+    },
     departureTime: {
       type: Date,
       required: true,

@@ -20,8 +20,9 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
+import SearchIcon from "@mui/icons-material/Search";
 import imgLogo from "../../assets/ImgLogo.png";
-
+import UserSearchDialog from "../forum/forumLeft/UserSearchDialog";
 const pages = [
   { name: "Trang chủ", path: "/" },
   { name: "Đặt vé", path: "/tickets" },
@@ -31,6 +32,7 @@ const pages = [
 
 function Nav() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [activePage, setActivePage] = useState(pages[0].name);
   const user = JSON.parse(localStorage.getItem("user"));
@@ -66,6 +68,12 @@ function Nav() {
   const handleViewProfile = () => {
     navigate(`/forum-profile/${userId}`);
     handleCloseUserMenu();
+  };
+  const handleSearchClick = async () => {
+    setOpen(true);
+  };
+  const handleClose = () => {
+    setOpen(false);
   };
 
   return (
@@ -161,6 +169,9 @@ function Nav() {
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>
+            <IconButton onClick={handleSearchClick} sx={{ mr: 1 }}>
+              <SearchIcon />
+            </IconButton>
             {user ? (
               <>
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
@@ -276,6 +287,7 @@ function Nav() {
           </Box>
         </Toolbar>
       </Container>
+      <UserSearchDialog open={open} onClose={handleClose} />
     </AppBar>
   );
 }

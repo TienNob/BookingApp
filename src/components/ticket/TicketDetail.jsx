@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link as RouterLink } from "react-router-dom";
+import { useParams, useNavigate, Link as RouterLink } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -17,10 +17,15 @@ import {
   CardMedia,
   Link,
 } from "@mui/material";
+import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
+import PersonRemoveOutlinedIcon from "@mui/icons-material/PersonRemoveOutlined";
 import axios from "axios";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
+import ImagePreview from "../ImagePreview";
+import { useSnackbar } from "notistack";
+
 const TicketDetail = () => {
   const { id } = useParams(); // Lấy ID từ URL
   const [images, setImages] = useState([]);
@@ -32,6 +37,20 @@ const TicketDetail = () => {
   const [seatOrder, setSeatOrder] = useState("");
   const [error, setError] = useState("");
   const [activeButtonId, setActiveButtonId] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState("");
+  const [initPrice, setInitPrice] = useState([]);
+  const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
+  const totalAmount = Math.round(
+    (initPrice[activeButtonId] * seatOrder) / 1000
+  );
+  const formattedAmount = formatNumber(totalAmount);
+
+  console.log(selectedRoute);
+  const { enqueueSnackbar } = useSnackbar(); // Initialize snackbar
+
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchTripDetail = async () => {
       try {
@@ -39,7 +58,7 @@ const TicketDetail = () => {
           `http://localhost:8080/api/trips/${id}`
         );
         setTrip(response.data);
-
+        setInitPrice(response.data.prices);
         setUser(response.data.user);
         const imagesResponse = await axios.get(
           `http://localhost:8080/api/posts/images/${response.data.user._id}`
@@ -51,17 +70,71 @@ const TicketDetail = () => {
     };
     fetchTripDetail();
   }, [id]);
-  console.log(user);
   const handleSeatCountChange = (event) => {
-    const value = event.target.value;
+    const value = parseInt(event.target.value);
     if (selectedRoute) {
       const availableSeats = trip.seatsAvailable;
-      if (parseInt(value) > availableSeats) {
+
+      if (isNaN(value) || value <= 0) {
+        setError("Số ghế phải lớn hơn 0.");
+      } else if (value > availableSeats) {
         setError(`Số ghế không được vượt quá ${availableSeats} ghế trống.`);
       } else {
         setError("");
       }
+
       setSeatCount(value);
+    }
+  };
+  const handlePayment = async () => {
+    const amount =
+      Math.round((initPrice[activeButtonId] * seatOrder) / 1000) * 1000;
+    console.log(amount);
+    const description = `Thanh toán cho ${user.firstName} ${user.lastName}`;
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/api/payment",
+        {
+          amount: amount,
+          description: description,
+          tripId: id,
+          location: `${selectedRoute.startLocation} - ${selectedRoute.endLocation}`,
+          userId: userId,
+          actorId: user._id,
+          seatsPurchased: seatOrder,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const { return_code, return_message, sub_return_message, order_url } =
+        response.data;
+      console.log(return_code);
+      if (return_code === 1) {
+        enqueueSnackbar("Đang chuyển đến trang thanh toán!", {
+          variant: "success",
+        });
+
+        // Điều hướng tới orderUrl sau khi thanh toán thành công
+        if (order_url) {
+          window.location.href = order_url;
+        } else {
+          enqueueSnackbar("Không tìm thấy URL đặt hàng", { variant: "error" });
+        }
+      } else {
+        // Hiển thị thông báo lỗi với chi tiết từ API
+        enqueueSnackbar(
+          `Thanh toán thất bại: ${return_message} (${sub_return_message})`,
+          { variant: "error" }
+        );
+      }
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      enqueueSnackbar("Thanh toán thất bại", { variant: "error" });
     }
   };
 
@@ -83,6 +156,67 @@ const TicketDetail = () => {
       handleClose();
     }
   };
+  const handleViewProfile = (userId) => {
+    navigate(`/forum-profile/${userId}`);
+  };
+
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setOpenModal(true);
+  };
+  const handleCloseModalImage = () => {
+    setOpenModal(false);
+    setSelectedImage("");
+  };
+  const handleFollowToggle = async (user) => {
+    const isFollowing = user.followers.some((follower) => follower === userId);
+
+    try {
+      if (isFollowing) {
+        // Unfollow the user
+        await axios.delete(
+          `http://localhost:8080/api/users/${userId}/friends/${user._id}`,
+
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setUser((prevUser) => ({
+          ...prevUser,
+          followers: prevUser.followers.filter(
+            (follower) => follower !== userId
+          ),
+        }));
+        enqueueSnackbar("Huỷ theo dõi thành công!", { variant: "success" });
+      } else {
+        // Follow the user
+        await axios.post(
+          `http://localhost:8080/api/users/${userId}/friends`,
+          {
+            friendId: user._id,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setUser((prevUser) => ({
+          ...prevUser,
+          followers: [...prevUser.followers, userId],
+        }));
+        enqueueSnackbar("Theo dõi thành công!", { variant: "success" });
+      }
+    } catch (error) {
+      console.error("Error managing follow status:", error);
+      enqueueSnackbar("Gặp lỗi khi xử lý", { variant: "error" });
+    }
+  };
+  function formatNumber(number) {
+    return number.toFixed(3).replace(/\B(?=(\d{3})+(?!\d))/g, "."); // Thêm dấu phân cách mỗi 3 đơn vị
+  }
 
   const open = Boolean(anchorEl);
   const idPopover = open ? "simple-popover" : undefined;
@@ -92,7 +226,9 @@ const TicketDetail = () => {
   const locations = trip.locations;
   const prices =
     trip.prices.map((price) =>
-      Math.round(price).toLocaleString("en-US").replace(/,/g, ".")
+      (Math.round(price / 1000) * 1000)
+        .toLocaleString("en-US")
+        .replace(/,/g, ".")
     ) || [];
   const colors = [
     "#c19af0",
@@ -107,9 +243,8 @@ const TicketDetail = () => {
   let colorIndexTicket = 0;
   let priceIndex = 0;
   let routeIndex = 0; // Initialize the route index
-
   return (
-    <Container sx={{ mt: "100px" }}>
+    <Container sx={{ mt: "100px", mb: 3 }}>
       <Breadcrumbs
         separator={<NavigateNextIcon fontSize="small" />}
         aria-label="breadcrumb"
@@ -215,29 +350,72 @@ const TicketDetail = () => {
           <Grid item xs={12} md={6}>
             <Box p={3} display="flex" flexDirection="column">
               <Typography variant="h5" mb={3} gutterBottom>
-                Thông tin người dùng
+                Thông tin người đăng
               </Typography>
               {user && (
                 <>
                   <Box display="flex" alignItems="center" mb={2}>
                     <Avatar
+                      onClick={() => {
+                        handleViewProfile(user._id);
+                      }}
                       src={
                         user.avatar
                           ? `http://localhost:8080${user.avatar}`
                           : undefined
                       }
-                      sx={{ mr: 2 }}
+                      sx={{ mr: 2, cursor: "pointer" }}
                     />
-                    <Typography variant="h6">
-                      {user.firstName} {user.lastName}
-                    </Typography>
+                    <Box sx={{ mr: "auto" }}>
+                      <Typography
+                        sx={{
+                          cursor: "pointer",
+                          "&:hover": { opacity: 0.7 },
+                        }}
+                        onClick={() => {
+                          handleViewProfile(user._id);
+                        }}
+                        variant="h6"
+                      >
+                        {user.firstName} {user.lastName}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {user.followers.length} đang theo dỗi
+                      </Typography>
+                    </Box>
+                    {user._id !== userId ? (
+                      <Button
+                        variant="contained"
+                        sx={{
+                          borderRadius: 2,
+                          fontSize: "12px",
+                          backgroundColor: "var(--primary-color)",
+                          "&:hover": {
+                            backgroundColor: "var(--hover-color)",
+                          },
+                        }}
+                        onClick={() => handleFollowToggle(user)}
+                      >
+                        {user.followers.some(
+                          (follower) => follower === userId
+                        ) ? (
+                          <>
+                            <PersonRemoveOutlinedIcon sx={{ mr: 1 }} /> Huỷ theo
+                            dõi
+                          </>
+                        ) : (
+                          <>
+                            <PersonAddOutlinedIcon sx={{ mr: 1 }} /> Theo dõi
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      ""
+                    )}
                   </Box>
 
                   <Typography variant="body1" color="textSecondary">
                     Số điện thoại: {user.phone}
-                  </Typography>
-                  <Typography variant="body1" color="textSecondary">
-                    Số người theo dõi: {user.followers.length}
                   </Typography>
                 </>
               )}
@@ -499,15 +677,35 @@ const TicketDetail = () => {
                   mb={1}
                   component="span"
                 >
-                  {selectedRoute
-                    ? ` ${prices[activeButtonId] * seatOrder} VND`
-                    : ""}
+                  {selectedRoute ? ` ${formattedAmount}VND` : ""}
                 </Typography>
               </Typography>
+              {seatOrder ? (
+                <Button
+                  variant="contained"
+                  sx={{
+                    borderRadius: 3,
+                    backgroundColor: "var(--primary-color)",
+                    "&:hover": {
+                      backgroundColor: "var(--hover-color)",
+                    },
+                  }}
+                  onClick={handlePayment} // Gọi hàm xử lý thanh toán
+                >
+                  Thanh toán
+                </Button>
+              ) : (
+                ""
+              )}
             </Box>
           </Card>
         </Grid>
       </Grid>
+      <ImagePreview
+        open={openModal}
+        imageUrl={selectedImage}
+        onClose={handleCloseModalImage}
+      />
     </Container>
   );
 };

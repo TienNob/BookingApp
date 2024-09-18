@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
 import PermIdentityIcon from "@mui/icons-material/PermIdentity";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
+import Badge from "@mui/material/Badge";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
@@ -23,6 +26,8 @@ import MenuItem from "@mui/material/MenuItem";
 import SearchIcon from "@mui/icons-material/Search";
 import imgLogo from "../../assets/ImgLogo.png";
 import UserSearchDialog from "../forum/forumLeft/UserSearchDialog";
+import NotificationDialog from "../forum/forumLeft/NotificationDialog";
+
 const pages = [
   { name: "Trang chủ", path: "/" },
   { name: "Đặt vé", path: "/tickets" },
@@ -33,6 +38,8 @@ const pages = [
 function Nav() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [open, setOpen] = useState(false);
+  const [openNoti, setOpenNoti] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0); // Track unread notifications
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [activePage, setActivePage] = useState(pages[0].name);
   const user = JSON.parse(localStorage.getItem("user"));
@@ -40,7 +47,21 @@ function Nav() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  console.log(activePage);
+  useEffect(() => {
+    if (userId) {
+      axios
+        .get(
+          `http://localhost:8080/api/notifications/unread-count?actorId=${userId}`
+        )
+        .then((response) => {
+          setUnreadCount(response.data.count);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch unread count", error);
+        });
+    }
+  }, [userId, openNoti]);
+
   const handleOpenNavMenu = () => {
     setDrawerOpen(true);
   };
@@ -74,6 +95,13 @@ function Nav() {
   };
   const handleClose = () => {
     setOpen(false);
+  };
+  const handleNotiClick = async () => {
+    setOpenNoti(true);
+  };
+
+  const handleCloseNoti = () => {
+    setOpenNoti(false);
   };
 
   return (
@@ -228,6 +256,36 @@ function Nav() {
                     </Typography>
                   </MenuItem>
 
+                  <MenuItem>
+                    <Typography
+                      onClick={handleNotiClick}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "start",
+                        padding: "4px 14px 4px 4px",
+                      }}
+                    >
+                      <Badge
+                        sx={{
+                          mr: 1,
+                          "& .MuiBadge-badge": {
+                            minWidth: 16,
+                            height: 16,
+                            fontSize: "0.75rem",
+                            padding: "0 4px",
+                          },
+                        }}
+                        color="error"
+                        badgeContent={unreadCount}
+                        invisible={unreadCount === 0} // Hide badge if no unread notifications
+                      >
+                        <NotificationsOutlinedIcon />
+                      </Badge>
+                      Thông báo
+                    </Typography>
+                  </MenuItem>
+
                   <MenuItem onClick={handleLogout}>
                     <Typography
                       sx={{
@@ -288,6 +346,11 @@ function Nav() {
         </Toolbar>
       </Container>
       <UserSearchDialog open={open} onClose={handleClose} />
+      <NotificationDialog
+        actorId={userId}
+        open={openNoti}
+        onClose={handleCloseNoti}
+      />
     </AppBar>
   );
 }

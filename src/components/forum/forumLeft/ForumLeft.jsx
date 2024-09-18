@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   List,
   ListItem,
@@ -11,6 +12,9 @@ import HomeIcon from "@mui/icons-material/Home";
 import SearchIcon from "@mui/icons-material/Search";
 import MessageIcon from "@mui/icons-material/Message";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import NotificationDialog from "./NotificationDialog";
+import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
+import MarkunreadMailboxIcon from "@mui/icons-material/MarkunreadMailbox";
 import UserSearchDialog from "./UserSearchDialog"; // Import the new component
 import io from "socket.io-client";
 
@@ -20,6 +24,8 @@ const socket = io("http://localhost:8080", {
 
 function ForumLeft() {
   const [open, setOpen] = useState(false);
+  const [openNoti, setOpenNoti] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0); // Track unread notifications
   const userId = localStorage.getItem("userId");
   const [newMessages, setNewMessages] = useState(
     JSON.parse(localStorage.getItem("newMessageFlags")) || {}
@@ -35,6 +41,30 @@ function ForumLeft() {
   const handleClose = () => {
     setOpen(false);
   };
+
+  const handleNotiClick = async () => {
+    setOpenNoti(true);
+  };
+
+  // Xử lý đóng modal
+  const handleCloseNoti = () => {
+    setOpenNoti(false);
+  };
+  useEffect(() => {
+    if (userId) {
+      axios
+        .get(
+          `http://localhost:8080/api/notifications/unread-count?actorId=${userId}`
+        )
+        .then((response) => {
+          setUnreadCount(response.data.count);
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch unread count", error);
+        });
+    }
+  }, [userId, openNoti]);
 
   useEffect(() => {
     socket.on("newMessage", (msg) => {
@@ -97,14 +127,61 @@ function ForumLeft() {
         <ListItemText primary="Tin nhắn" />
       </ListItem>
 
-      <ListItem button sx={{ borderRadius: "10px", mt: 1 }}>
+      <ListItem
+        onClick={handleNotiClick}
+        button
+        sx={{ borderRadius: "10px", mt: 1 }}
+      >
         <ListItemIcon>
-          <NotificationsIcon sx={{ color: "var(--primary-color)" }} />
+          <Badge
+            sx={{
+              "& .MuiBadge-badge": {
+                minWidth: 16,
+                height: 16,
+                fontSize: "0.75rem",
+                padding: "0 4px",
+              },
+            }}
+            color="error"
+            badgeContent={unreadCount}
+            invisible={unreadCount === 0} // Hide badge if no unread notifications
+          >
+            <NotificationsIcon sx={{ color: "var(--primary-color)" }} />
+          </Badge>
         </ListItemIcon>
         <ListItemText primary="Thông báo" />
       </ListItem>
+      <ListItem
+        onClick={() => {
+          navigate(`/my-trips`);
+        }}
+        button
+        sx={{ borderRadius: "10px", mt: 1 }}
+      >
+        <ListItemIcon>
+          <MarkunreadMailboxIcon sx={{ color: "var(--primary-color)" }} />
+        </ListItemIcon>
+        <ListItemText primary="Chuyến đi đã tạo" />
+      </ListItem>
+      <ListItem
+        onClick={() => {
+          navigate(`/my-tickets`);
+        }}
+        button
+        sx={{ borderRadius: "10px", mt: 1 }}
+      >
+        <ListItemIcon>
+          <ConfirmationNumberIcon sx={{ color: "var(--primary-color)" }} />
+        </ListItemIcon>
+        <ListItemText primary="Vé đã mua" />
+      </ListItem>
       {/* Use the new UserSearchDialog component */}
       <UserSearchDialog open={open} onClose={handleClose} />
+      <NotificationDialog
+        actorId={userId}
+        open={openNoti}
+        onClose={handleCloseNoti}
+      />
     </List>
   );
 }

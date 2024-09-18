@@ -1,31 +1,42 @@
-// models/Ticket.js
 const mongoose = require("mongoose");
 
 const ticketSchema = new mongoose.Schema(
   {
-    departureTime: {
-      type: Date,
+    trip: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Trip", // Tham chiếu đến mô hình Trip
       required: true,
     },
-    returnTime: {
-      type: Date,
-    },
-    departurePoint: {
+    location: {
       type: String,
       required: true,
     },
-    arrivalPoint: {
-      type: String,
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // Tham chiếu đến mô hình User
       required: true,
     },
-    price: {
+    actor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // Tham chiếu đến mô hình User
+      required: true,
+    },
+    seatsPurchased: {
       type: Number,
       required: true,
     },
-    bus: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Bus",
+    amountPaid: {
+      type: Number,
       required: true,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["Pending", "Paid", "Failed"], // Trạng thái thanh toán
+      default: "Pending",
+    },
+    purchaseTime: {
+      type: Date,
+      default: Date.now,
     },
   },
   {

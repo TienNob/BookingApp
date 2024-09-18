@@ -11,6 +11,8 @@ import Contact from "./components/contact/Contact";
 import Admin from "./components/admin/Admin";
 import Forum from "./components/forum/Forum";
 import Ticket from "./components/ticket/Ticket";
+import MyTicket from "./components/ticket/MyTicket";
+import MyTrip from "./components/ticket/MyTrip";
 import TicketDetail from "./components/ticket/TicketDetail";
 import ForumProfile from "./components/forum/ForumProfile";
 import { Button } from "@mui/material";
@@ -25,7 +27,10 @@ function App() {
   const hideFooter =
     hideHeaderFooter ||
     location.pathname === "/forum" ||
+    location.pathname === "/my-tickets" ||
+    location.pathname === "/my-trips" ||
     location.pathname === "/tickets" ||
+    location.pathname.startsWith("/ticket-detail") ||
     location.pathname === "/chatbox" ||
     location.pathname.startsWith("/forum-profile");
 
@@ -57,6 +62,8 @@ function App() {
           <Route path="/forum" element={<Forum />} />
           <Route path="/forum-profile/:userId" element={<ForumProfile />} />
           <Route path="/tickets" element={<Ticket />} />
+          <Route path="/my-tickets" element={<MyTicket />} />
+          <Route path="/my-trips" element={<MyTrip />} />
           <Route path="/chatbox" element={<ChatBox />} />
           <Route path="/ticket-detail/:id" element={<TicketDetail />} />
         </Routes>

@@ -35,11 +35,24 @@ const tripSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    state: {
+      type: Number,
+      default: 0, // Mặc định là 0
+    },
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt
   }
 );
+tripSchema.pre("save", function (next) {
+  const now = new Date();
+  if (this.departureTime < now) {
+    this.state = 1; // Mark as inactive if the departure time has passed
+  } else {
+    this.state = 0; // Mark as active if the departure time is still in the future
+  }
+  next();
+});
 
 const Trip = mongoose.model("Trip", tripSchema);
 

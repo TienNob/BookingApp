@@ -411,7 +411,15 @@ const Ticket = () => {
                               justifyContent: "center",
                             }}
                           >
-                            <Typography variant="body2" color="textSecondary">
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color:
+                                  trip.state === 1
+                                    ? "var(--red)"
+                                    : "textSecondary",
+                              }}
+                            >
                               Số ghế trống: {trip.seatsAvailable}
                             </Typography>
                             <Button
@@ -419,9 +427,15 @@ const Ticket = () => {
                               onClick={() => handleViewDetails(trip._id)}
                               sx={{
                                 mt: 1,
-                                backgroundColor: "var(--primary-color)",
+                                backgroundColor:
+                                  trip.state === 1
+                                    ? "var(--red)"
+                                    : "var(--primary-color)",
                                 "&:hover": {
-                                  backgroundColor: "var(--hover-color)",
+                                  backgroundColor:
+                                    trip.state === 1
+                                      ? "var(--dark-red)"
+                                      : "var(--hover-color)",
                                 },
                               }}
                             >

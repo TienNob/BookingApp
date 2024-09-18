@@ -1,99 +1,27 @@
-// routers/tickets.js
 const express = require("express");
+const Ticket = require("../models/ticket"); // Đảm bảo đường dẫn đúng
 const router = express.Router();
-const Ticket = require("../models/Ticket");
-const Bus = require("../models/Bus");
 
-// Lấy danh sách vé xe bus
+// Lấy tất cả các vé hoặc vé của người dùng cụ thể
 router.get("/", async (req, res) => {
   try {
-    const tickets = await Ticket.find().populate("bus");
-    res.status(200).json(tickets);
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
-  }
-});
+    const { userId } = req.query; // Lấy userId từ query params (nếu có)
 
-// Thêm vé xe bus mới
-router.post("/", async (req, res) => {
-  const {
-    departureTime,
-    returnTime,
-    departurePoint,
-    arrivalPoint,
-    price,
-    bus,
-  } = req.body;
-
-  try {
-    // Kiểm tra xem xe bus có tồn tại không
-    const busExists = await Bus.findById(bus);
-    if (!busExists) {
-      return res.status(404).json({ message: "Bus not found" });
+    let tickets;
+    if (userId) {
+      // Nếu có userId thì chỉ lấy vé của người dùng đó
+      tickets = await Ticket.find({ user: userId })
+        .populate("trip")
+        .populate("user");
+    } else {
+      // Nếu không có userId thì lấy tất cả các vé
+      tickets = await Ticket.find().populate("trip").populate("user");
     }
 
-    const ticket = new Ticket({
-      departureTime,
-      returnTime,
-      departurePoint,
-      arrivalPoint,
-      price,
-      bus,
-    });
-    await ticket.save();
-    res.status(201).json(ticket);
+    res.status(200).json(tickets); // Trả về danh sách vé
   } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
-  }
-});
-
-// Cập nhật thông tin vé xe bus
-router.put("/:id", async (req, res) => {
-  const {
-    departureTime,
-    returnTime,
-    departurePoint,
-    arrivalPoint,
-    price,
-    bus,
-  } = req.body;
-
-  try {
-    // Kiểm tra xem xe bus có tồn tại không
-    if (bus) {
-      const busExists = await Bus.findById(bus);
-      if (!busExists) {
-        return res.status(404).json({ message: "Bus not found" });
-      }
-    }
-
-    const ticket = await Ticket.findByIdAndUpdate(
-      req.params.id,
-      { departureTime, returnTime, departurePoint, arrivalPoint, price, bus },
-      { new: true, runValidators: true }
-    );
-
-    if (!ticket) {
-      return res.status(404).json({ message: "Ticket not found" });
-    }
-
-    res.status(200).json(ticket);
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
-  }
-});
-
-// Xóa vé xe bus
-router.delete("/:id", async (req, res) => {
-  try {
-    const ticket = await Ticket.findByIdAndDelete(req.params.id);
-    if (!ticket) {
-      return res.status(404).json({ message: "Ticket not found" });
-    }
-
-    res.status(200).json({ message: "Ticket deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
+    console.error("Error fetching tickets:", error);
+    res.status(500).json({ message: "Error fetching tickets", error });
   }
 });
 

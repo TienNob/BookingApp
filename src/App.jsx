@@ -14,7 +14,7 @@ import Ticket from "./components/ticket/Ticket";
 import MyTicket from "./components/ticket/MyTicket";
 import MyTrip from "./components/ticket/MyTrip";
 import TicketDetail from "./components/ticket/TicketDetail";
-import ForumProfile from "./components/forum/ForumProfile";
+import ForumProfile from "./components/forum/forumProfile/ForumProfile";
 import { Button } from "@mui/material";
 import ScrollTop from "./components/ScrollTop";
 import ChatBox from "./components/forum/forumLeft/ChatBox";

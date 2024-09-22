@@ -6,8 +6,10 @@ import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
+import ModeEditOutlineOutlinedIcon from "@mui/icons-material/ModeEditOutlineOutlined";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
 import Badge from "@mui/material/Badge";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
@@ -27,6 +29,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import imgLogo from "../../assets/ImgLogo.png";
 import UserSearchDialog from "../forum/forumLeft/UserSearchDialog";
 import NotificationDialog from "../forum/forumLeft/NotificationDialog";
+import ForumEditProfile from "../forum/forumProfile/FormEditProfile";
 
 const pages = [
   { name: "Trang chủ", path: "/" },
@@ -42,7 +45,9 @@ function Nav() {
   const [unreadCount, setUnreadCount] = useState(0); // Track unread notifications
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [activePage, setActivePage] = useState(pages[0].name);
+  const [openEdit, setOpenEdit] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
+
   const userId = localStorage.getItem("userId");
   const navigate = useNavigate();
   const location = useLocation();
@@ -103,7 +108,13 @@ function Nav() {
   const handleCloseNoti = () => {
     setOpenNoti(false);
   };
+  const handleOpenEdit = () => {
+    setOpenEdit(true);
+  };
 
+  const handleCloseEdit = () => {
+    setOpenEdit(false);
+  };
   return (
     <AppBar
       position="fixed"
@@ -239,6 +250,21 @@ function Nav() {
                       {user.lastName}
                     </Typography>
                   </MenuItem>
+                  <Divider variant="middle" component="li" />
+
+                  <MenuItem onClick={handleOpenEdit}>
+                    <Typography
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "start",
+                        padding: "4px 14px 4px 4px",
+                      }}
+                    >
+                      <ModeEditOutlineOutlinedIcon sx={{ mr: 1 }} />
+                      Cập nhật thông tin
+                    </Typography>
+                  </MenuItem>
                   <MenuItem
                     onClick={() => {
                       navigate(`/chatbox`);
@@ -346,6 +372,7 @@ function Nav() {
         </Toolbar>
       </Container>
       <UserSearchDialog open={open} onClose={handleClose} />
+      <ForumEditProfile open={openEdit} handleClose={handleCloseEdit} />
       <NotificationDialog
         actorId={userId}
         open={openNoti}

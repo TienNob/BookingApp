@@ -28,9 +28,10 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
 import PersonRemoveOutlinedIcon from "@mui/icons-material/PersonRemoveOutlined";
-import coverImgDefault from "../../assets/coverIMG.png";
-import ForumContent from "./forumMain/ForumContent";
-import ImagePreview from "../ImagePreview";
+import coverImgDefault from "../../../assets/coverIMG.png";
+import ForumContent from "../forumMain/ForumContent";
+import ImagePreview from "../../ImagePreview";
+import FormEditProfile from "./FormEditProfile";
 const ForumProfile = () => {
   const { userId } = useParams();
   const [user, setUser] = useState(null);
@@ -48,6 +49,7 @@ const ForumProfile = () => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [openAvatarPreviewDialog, setOpenAvatarPreviewDialog] = useState(false); // New state for avatar dialog
   const [openModal, setOpenModal] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
   const token = localStorage.getItem("token");
   const { enqueueSnackbar } = useSnackbar(); // Initialize snackbar
@@ -252,6 +254,13 @@ const ForumProfile = () => {
   const handleCloseModalImage = () => {
     setOpenModal(false);
     setSelectedImage("");
+  };
+  const handleOpenEdit = () => {
+    setOpenEdit(true);
+  };
+
+  const handleCloseEdit = () => {
+    setOpenEdit(false);
   };
   if (!user) return <p>Loading user data...</p>;
 
@@ -469,15 +478,19 @@ const ForumProfile = () => {
                 ) : (
                   ""
                 )}
-                <IconButton
-                  aria-label="more"
-                  aria-controls="user-actions-menu"
-                  aria-haspopup="true"
-                  onClick={(event) => handleMenuOpen(event, "menuMore")}
-                  sx={{ ml: 1, mt: 1 }}
-                >
-                  <MoreVertIcon />
-                </IconButton>
+                {userIdLocal === userId ? (
+                  <IconButton
+                    aria-label="more"
+                    aria-controls="user-actions-menu"
+                    aria-haspopup="true"
+                    onClick={(event) => handleMenuOpen(event, "menuMore")}
+                    sx={{ ml: 1, mt: 1 }}
+                  >
+                    <MoreVertIcon />
+                  </IconButton>
+                ) : (
+                  ""
+                )}
                 <Menu
                   id="user-actions-menu"
                   anchorEl={menuAnchorEl}
@@ -487,6 +500,9 @@ const ForumProfile = () => {
                 >
                   <MenuItem onClick={() => setOpenAvatarPreviewDialog(true)}>
                     Thay đổi ảnh đại diện
+                  </MenuItem>
+                  <MenuItem onClick={handleOpenEdit}>
+                    Chỉnh sửa thông tin
                   </MenuItem>
                 </Menu>
               </Box>
@@ -663,6 +679,7 @@ const ForumProfile = () => {
           imageUrl={selectedImage}
           onClose={handleCloseModalImage}
         />
+        <FormEditProfile open={openEdit} handleClose={handleCloseEdit} />
       </Container>
     </Box>
   );

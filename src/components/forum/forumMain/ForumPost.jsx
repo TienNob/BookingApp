@@ -28,6 +28,7 @@ import Loadding from "../../Loadding";
 
 function ForumPost({ open, handleClose }) {
   const [postContent, setPostContent] = useState("");
+  const [user, setUser] = useState("");
   const [showImageInput, setShowImageInput] = useState(false);
   const [showTripDetails, setShowTripDetails] = useState(false);
   const [imageFile, setImageFile] = useState(null);
@@ -46,6 +47,8 @@ function ForumPost({ open, handleClose }) {
   const [loading, setLoading] = useState(false);
   const [departureTime, setDepartureTime] = useState(null); // State for date-time picker
   const [totalSeats, setTotalSeats] = useState(null);
+  const userId = localStorage.getItem("userId");
+  console.log(user.cccd);
 
   // Fetch provinces
   useEffect(() => {
@@ -338,7 +341,6 @@ function ForumPost({ open, handleClose }) {
     setImagePreview(URL.createObjectURL(e.target.files[0]));
   };
 
-  console.log(imageFile);
   const handleTripStepChange = (index, field, value) => {
     const updatedSteps = [...tripSteps];
     updatedSteps[index] = {
@@ -362,7 +364,29 @@ function ForumPost({ open, handleClose }) {
   const handleBack = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
-
+  useEffect(() => {
+    axios
+      .get(`http://localhost:8080/api/users/${userId}`)
+      .then((response) => {
+        setUser(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
+        setError("Failed to fetch user data.");
+      });
+  }, [userId]);
+  const handleShowTripDetail = () => {
+    if (user.cccd === undefined || user.cccd === "") {
+      enqueueSnackbar(
+        "Vui lòng cập nhật thông tin CCCD trước khi tạo chuyến đi!",
+        {
+          variant: "warning",
+        }
+      );
+    } else {
+      setShowTripDetails(!showTripDetails);
+    }
+  };
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>
@@ -431,7 +455,7 @@ function ForumPost({ open, handleClose }) {
             }}
             variant={showTripDetails ? "contained" : "outlined"}
             startIcon={<DirectionsIcon />}
-            onClick={() => setShowTripDetails(!showTripDetails)}
+            onClick={handleShowTripDetail}
           >
             Thêm chuyến đi
           </Button>

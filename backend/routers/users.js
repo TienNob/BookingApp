@@ -68,6 +68,36 @@ router.get("/:id", async (req, res) => {
     res.status(500).send({ message: "Internal Server Error" });
   }
 });
+router.put("/:id", authenticateToken, async (req, res) => {
+  try {
+    const { firstName, lastName, cccd, phone } = req.body;
+
+    // Kiểm tra nếu thông tin không hợp lệ
+    if (!firstName || !lastName || !cccd || !phone) {
+      return res.status(400).send({ message: "All fields are required" });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).send({ message: "User not found" });
+
+    // Cập nhật các thông tin người dùng
+    user.firstName = firstName;
+    user.lastName = lastName;
+    user.cccd = cccd; // Assuming `cccd` is a field in your User model
+    user.phone = phone; // Update phone number (assuming the field is `phone`)
+
+    // Lưu thông tin người dùng đã cập nhật
+    await user.save();
+
+    res
+      .status(200)
+      .send({ message: "User information updated successfully", user });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
 router.post(
   "/:id/upload",
   authenticateToken,

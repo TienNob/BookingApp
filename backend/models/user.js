@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   phone: { type: String, required: true },
+  cccd: { type: String },
   password: { type: String, required: true },
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Friends list
   avatar: { type: String }, // Path to the avatar image file

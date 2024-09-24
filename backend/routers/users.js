@@ -51,7 +51,7 @@ router.post("/", async (req, res) => {
 router.get("/all", async (req, res) => {
   try {
     const users = await User.find().select(
-      "firstName lastName phone friends avatar followers"
+      "firstName lastName phone friends avatar followers createdAt"
     );
     res.status(200).send(users);
   } catch (error) {
@@ -70,10 +70,10 @@ router.get("/:id", async (req, res) => {
 });
 router.put("/:id", authenticateToken, async (req, res) => {
   try {
-    const { firstName, lastName, cccd, phone } = req.body;
+    const { firstName, lastName, cccd, phone, sex, birthDay } = req.body;
 
     // Kiểm tra nếu thông tin không hợp lệ
-    if (!firstName || !lastName || !cccd || !phone) {
+    if (!firstName || !lastName || !phone) {
       return res.status(400).send({ message: "All fields are required" });
     }
 
@@ -84,7 +84,9 @@ router.put("/:id", authenticateToken, async (req, res) => {
     user.firstName = firstName;
     user.lastName = lastName;
     user.cccd = cccd; // Assuming `cccd` is a field in your User model
-    user.phone = phone; // Update phone number (assuming the field is `phone`)
+    user.phone = phone;
+    user.sex = sex;
+    user.birthDay = birthDay;
 
     // Lưu thông tin người dùng đã cập nhật
     await user.save();

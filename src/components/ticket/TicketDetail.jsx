@@ -537,37 +537,50 @@ const TicketDetail = () => {
               horizontal: "left",
             }}
           >
-            {selectedRoute && (
-              <Box p={2}>
-                <TextField
-                  label="Số ghế"
-                  type="number"
-                  value={seatCount}
-                  onChange={handleSeatCountChange}
-                  error={!!error}
-                  helperText={error}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <Button
-                          variant="contained"
-                          sx={{
-                            backgroundColor: "var(--primary-color)",
-                            "&:hover": {
-                              backgroundColor: "var(--hover-color)",
-                            },
-                          }}
-                          onClick={handleAddSeat}
-                          disabled={!seatCount || !!error}
-                        >
-                          Xác nhận
-                        </Button>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Box>
-            )}
+            {selectedRoute &&
+              (trip.state === 0 ? (
+                <Box p={2}>
+                  <TextField
+                    label="Số ghế"
+                    type="number"
+                    value={seatCount}
+                    onChange={handleSeatCountChange}
+                    error={!!error}
+                    helperText={error}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <Button
+                            variant="contained"
+                            sx={{
+                              backgroundColor: "var(--primary-color)",
+                              "&:hover": {
+                                backgroundColor: "var(--hover-color)",
+                              },
+                            }}
+                            onClick={handleAddSeat}
+                            disabled={!seatCount || !!error}
+                          >
+                            Xác nhận
+                          </Button>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Box>
+              ) : trip.state === 1 && trip.seatsAvailable === 0 ? (
+                <Box px={3} py={2}>
+                  <Typography variant="p" gutterBottom>
+                    Vé đã hết!
+                  </Typography>
+                </Box>
+              ) : (
+                <Box px={3} py={2}>
+                  <Typography variant="p" gutterBottom>
+                    Vé đã quá thời gian xuất phát!
+                  </Typography>
+                </Box>
+              ))}
           </Popover>
         </Grid>
         <Grid item xs={12} md={6}>

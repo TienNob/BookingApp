@@ -4,14 +4,22 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Button,
   Grid,
   CircularProgress,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  TextField,
 } from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"; // Import LocalizationProvider
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns"; // Import Adapter for Day.js
 import { useSnackbar } from "notistack";
 import axios from "axios";
 import Loadding from "../../Loadding";
+import dayjs from "dayjs"; // Thêm thư viện dayjs để xử lý định dạng ngày
 
 const ForumEditProfile = ({ open, handleClose }) => {
   const [formData, setFormData] = useState({
@@ -19,6 +27,8 @@ const ForumEditProfile = ({ open, handleClose }) => {
     lastName: "",
     cccd: "",
     phone: "",
+    sex: "",
+    birthDay: null,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -46,6 +56,8 @@ const ForumEditProfile = ({ open, handleClose }) => {
             lastName: user.lastName || "",
             cccd: user.cccd || "",
             phone: user.phone || "",
+            sex: user.sex || "",
+            birthDay: user.birthDay ? dayjs(user.birthDay) : null, // Convert date string to dayjs object
           });
           setLoading(false);
         })
@@ -75,6 +87,14 @@ const ForumEditProfile = ({ open, handleClose }) => {
     }
   };
 
+  // Xử lý khi thay đổi giá trị ngày sinh
+  const handleDateChange = (newDate) => {
+    setFormData({
+      ...formData,
+      birthDay: newDate ? newDate.toISOString().split("T")[0] : "", // Chuyển đổi ngày thành chuỗi yyyy-mm-dd
+    });
+  };
+
   // Gọi hàm onSave khi người dùng nhấn nút "Lưu"
   const handleSave = async () => {
     // Nếu có lỗi CCCD hoặc số điện thoại, không gửi yêu cầu
@@ -82,9 +102,13 @@ const ForumEditProfile = ({ open, handleClose }) => {
 
     setSaving(true);
     try {
+      console.log(formData);
+
       const response = await axios.put(
         `http://localhost:8080/api/users/${userId}`,
+
         formData,
+
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -96,7 +120,7 @@ const ForumEditProfile = ({ open, handleClose }) => {
       handleClose(); // Đóng dialog sau khi lưu thành công
     } catch (error) {
       console.error("Error saving user data:", error);
-      enqueueSnackbar(`Thay đổi thông tinh thất bại!`, { variant: "error" });
+      enqueueSnackbar(`Thay đổi thông tin thất bại!`, { variant: "error" });
       setError("Failed to save user data.");
       setSaving(false);
     }
@@ -153,6 +177,33 @@ const ForumEditProfile = ({ open, handleClose }) => {
                 helperText={phoneError}
                 fullWidth
               />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  sx={{ width: "100%", mt: 1 }}
+                  label="Ngày sinh"
+                  maxDate={new Date()}
+                  value={formData.birthDay ? new Date(formData.birthDay) : null} // Chuyển đổi chuỗi thành đối tượng Date
+                  onChange={handleDateChange}
+                  renderInput={(params) => <TextField fullWidth {...params} />}
+                />
+              </LocalizationProvider>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth margin="dense">
+                <InputLabel>Giới tính</InputLabel>
+                <Select
+                  name="sex"
+                  value={formData.sex}
+                  onChange={handleChange}
+                  label="Giới tính"
+                >
+                  <MenuItem value="Nam">Nam</MenuItem>
+                  <MenuItem value="Nữ">Nữ</MenuItem>
+                  <MenuItem value="Khác">Khác</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         )}

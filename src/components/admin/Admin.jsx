@@ -16,6 +16,7 @@ import { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 import AdminNav from "./AdminNav";
 import AdminBus from "./adminBus/AdminBus";
+import AdminOverview from "./adminOverview/AdminOverview";
 import { Routes, Route } from "react-router-dom";
 
 function Admin(params) {
@@ -62,6 +63,7 @@ function Admin(params) {
         <Toolbar />
         <Routes>
           <Route path="bus" element={<AdminBus />} />
+          <Route path="overview" element={<AdminOverview />} />
         </Routes>
       </Box>
     </Box>

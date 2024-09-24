@@ -3,17 +3,24 @@ const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 const passwordComplexity = require("joi-password-complexity");
 
-const userSchema = new mongoose.Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  phone: { type: String, required: true },
-  cccd: { type: String },
-  password: { type: String, required: true },
-  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Friends list
-  avatar: { type: String }, // Path to the avatar image file
-  coverPhoto: { type: String }, // Path to the cover photo file
-  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Followers list
-});
+const userSchema = new mongoose.Schema(
+  {
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    phone: { type: String, required: true },
+    cccd: { type: String },
+    sex: { type: String },
+    birthDay: { type: Date },
+    password: { type: String, required: true },
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Friends list
+    avatar: { type: String }, // Path to the avatar image file
+    coverPhoto: { type: String }, // Path to the cover photo file
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Followers list
+  },
+  {
+    timestamps: true, // Tự động thêm createdAt và updatedAt
+  }
+);
 
 userSchema.methods.generateAuthToken = function () {
   const token = jwt.sign({ _id: this._id }, process.env.JWTPRIVATEKEY, {

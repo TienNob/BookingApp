@@ -18,6 +18,8 @@ import ForumProfile from "./components/forum/forumProfile/ForumProfile";
 import { Button } from "@mui/material";
 import ScrollTop from "./components/ScrollTop";
 import ChatBox from "./components/forum/forumLeft/ChatBox";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
   const location = useLocation();
   const hideHeaderFooter =
@@ -58,7 +60,14 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/admin/*" element={<Admin />} />
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Admin />
+              </ProtectedRoute>
+            }
+          />{" "}
           <Route path="/forum" element={<Forum />} />
           <Route path="/forum-profile/:userId" element={<ForumProfile />} />
           <Route path="/tickets" element={<Ticket />} />

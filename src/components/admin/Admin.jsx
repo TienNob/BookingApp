@@ -15,7 +15,7 @@ import {
 import { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 import AdminNav from "./AdminNav";
-import AdminBus from "./adminBus/AdminBus";
+import AdminTrips from "./adminTrip/AdminTrips";
 import AdminOverview from "./adminOverview/AdminOverview";
 import { Routes, Route } from "react-router-dom";
 
@@ -62,7 +62,7 @@ function Admin(params) {
       >
         <Toolbar />
         <Routes>
-          <Route path="bus" element={<AdminBus />} />
+          <Route path="trips" element={<AdminTrips />} />
           <Route path="overview" element={<AdminOverview />} />
         </Routes>
       </Box>

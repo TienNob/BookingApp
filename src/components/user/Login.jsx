@@ -62,10 +62,11 @@ function Login() {
         password,
       });
       console.log("Đăng nhập thành công:", response.data);
-      const { firstName, lastName, token, _id, avatar } = response.data.data;
+      const { firstName, lastName, token, _id, avatar, role } =
+        response.data.data;
       localStorage.setItem(
         "user",
-        JSON.stringify({ firstName, lastName, avatar })
+        JSON.stringify({ firstName, lastName, avatar, role })
       );
       localStorage.setItem("token", token);
       localStorage.setItem("userId", _id);
@@ -74,8 +75,9 @@ function Login() {
       enqueueSnackbar("Đăng nhập thành công!", { variant: "success" });
       setTimeout(() => {
         setLoading(false);
-
-        navigate("/");
+        if (role === "admin") {
+          navigate("/admin/overview");
+        } else navigate("/");
       }, 1000);
     } catch (error) {
       setLoading(false);

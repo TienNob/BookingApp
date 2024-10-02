@@ -105,6 +105,9 @@ const ForumProfile = () => {
             },
           }
         );
+        enqueueSnackbar(`Bạn đã huỷ theo dỗi ${user.lastName}`, {
+          variant: "info",
+        });
         setIsFriend(false);
       } else {
         await axios.post(
@@ -119,10 +122,9 @@ const ForumProfile = () => {
           }
         );
         setIsFriend(true);
-        enqueueSnackbar(
-          isFriend ? "Huỷ theo dỗi thành công!" : `Theo dỗi thành công!`,
-          { variant: "success" }
-        );
+        enqueueSnackbar(`Theo dỗi thành công  ${user.lastName}`, {
+          variant: "success",
+        });
       }
     } catch (error) {
       console.error("Error managing friend status:", error);

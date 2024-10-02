@@ -1,24 +1,25 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box, Typography, List, ListItem, Avatar, Button } from "@mui/material";
 import axios from "axios";
-
+import { useSnackbar } from "notistack";
 // Get userId from local storage
 const userId = localStorage.getItem("userId");
-const token = localStorage.getItem("token"); // Assuming token is stored in local storage
-
+const token = localStorage.getItem("token");
 const ForumRight = () => {
   const [suggestedUsers, setSuggestedUsers] = useState([]);
-
+  const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
   // Function to get all users and exclude friends from the list
   const fetchUsers = async () => {
     try {
       const response = await axios.get("http://localhost:8080/api/users/all");
       const users = response.data;
-      console.log(users);
       // Exclude friends from the users list
       const nonFriendUsers = users.filter(
         (user) =>
           user._id !== userId &&
+          user.role !== "admin" && // Exclude admin users
           !user.followers.some((follower) => follower === userId)
       );
       // Assuming you want to display 5 random users
@@ -44,6 +45,9 @@ const ForumRight = () => {
             },
           }
         );
+        enqueueSnackbar(`Bạn đã huỷ theo dỗi ${user.lastName}`, {
+          variant: "info",
+        });
         // Update user's followers list by removing the current userId
         setSuggestedUsers((prevUsers) =>
           prevUsers.map((u) =>
@@ -70,6 +74,9 @@ const ForumRight = () => {
             },
           }
         );
+        enqueueSnackbar(`Bạn đã theo dỗi ${user.lastName}`, {
+          variant: "success",
+        });
         // Update user's followers list by adding the current userId
         setSuggestedUsers((prevUsers) =>
           prevUsers.map((u) =>
@@ -80,6 +87,7 @@ const ForumRight = () => {
         );
       }
     } catch (error) {
+      enqueueSnackbar("lỗi theo dỗi/ huỷ theo dỗi", { variant: "error" });
       console.error("Error following/unfollowing user:", error);
     }
   };
@@ -89,6 +97,9 @@ const ForumRight = () => {
     setSuggestedUsers((prevUsers) =>
       prevUsers.filter((user) => user._id !== id)
     );
+  };
+  const handleProfileClick = (userId) => {
+    navigate(`/forum-profile/${userId}`);
   };
 
   useEffect(() => {
@@ -114,11 +125,26 @@ const ForumRight = () => {
             <Box sx={{ display: "flex", flexDirection: "column" }}>
               <Box sx={{ display: "flex", mb: 1 }}>
                 <Avatar
+                  onClick={() => handleProfileClick(user._id)}
                   src={`http://localhost:8080${user.avatar}`}
-                  sx={{ mr: 2, width: "45px", height: "45px" }}
+                  sx={{
+                    mr: 2,
+                    width: "45px",
+                    height: "45px",
+                    cursor: "pointer",
+                    transition: "all linear 0.3s",
+                    "&:hover": { opacity: 0.7 },
+                  }}
                 />
                 <Box>
-                  <Typography variant="body1">
+                  <Typography
+                    variant="body1"
+                    onClick={() => handleProfileClick(user._id)}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": { textDecoration: "underline" },
+                    }}
+                  >
                     {user.firstName} {user.lastName}
                   </Typography>
                   <Typography color="text.secondary" variant="caption">
@@ -130,6 +156,7 @@ const ForumRight = () => {
                 <Button
                   variant="contained"
                   sx={{
+                    mb: 1,
                     borderRadius: 5,
                     fontSize: "12px",
                     backgroundColor: "var(--primary-color)",
@@ -149,6 +176,8 @@ const ForumRight = () => {
                 <Button
                   variant="contained"
                   sx={{
+                    mb: 1,
+
                     backgroundColor: "var(--light-grey)",
                     "&:hover": {
                       backgroundColor: "var(--bg-color)",

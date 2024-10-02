@@ -20,6 +20,25 @@ function AdminSidebar() {
       <List sx={{ pr: 1, pl: 1 }}>
         <ListItem
           sx={{
+            mb: 0.5,
+            borderRadius: "10px",
+            backgroundColor: isActive("/admin/overview")
+              ? "var(--bg-btn)"
+              : "transparent",
+            "&:hover": {
+              backgroundColor: "var(--hover-bg-btn)",
+            },
+            color: isActive("/admin/overview")
+              ? "var(--primary-color)"
+              : "inherit",
+          }}
+          button
+          onClick={() => handleListItemClick("/admin/overview")}
+        >
+          <ListItemText primary="Tổng quan" />
+        </ListItem>
+        <ListItem
+          sx={{
             borderRadius: "10px",
             backgroundColor: isActive("/admin/bus")
               ? "var(--bg-btn)"
@@ -32,27 +51,11 @@ function AdminSidebar() {
             color: isActive("/admin/bus") ? "var(--primary-color)" : "inherit",
           }}
           button
-          onClick={() => handleListItemClick("/admin/bus")}
+          onClick={() => handleListItemClick("/admin/trips")}
         >
-          <ListItemText primary="Bus Management" />
+          <ListItemText primary="Chuyến đi" />
         </ListItem>
-        <ListItem
-          sx={{
-            mt: 0.5,
-            borderRadius: "10px",
-            backgroundColor: isActive("/admin/ss")
-              ? "var(--bg-btn)"
-              : "transparent",
-            "&:hover": {
-              backgroundColor: "var(--hover-bg-btn)",
-            },
-            color: isActive("/admin/ss") ? "var(--primary-color)" : "inherit",
-          }}
-          button
-          onClick={() => handleListItemClick("/admin/ss")}
-        >
-          <ListItemText primary="Bus Management" />
-        </ListItem>
+
         {/* Add more items as needed */}
       </List>
     </Box>

@@ -34,7 +34,7 @@ function ForumPost({ open, handleClose }) {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [tripSteps, setTripSteps] = useState([{}]); // Initialize with one empty step object
-  const [availableSeats, setAvailableSeats] = useState("");
+  const [availableSeats, setAvailableSeats] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
@@ -48,7 +48,6 @@ function ForumPost({ open, handleClose }) {
   const [departureTime, setDepartureTime] = useState(null); // State for date-time picker
   const [totalSeats, setTotalSeats] = useState(null);
   const userId = localStorage.getItem("userId");
-  console.log(user.cccd);
 
   // Fetch provinces
   useEffect(() => {
@@ -227,7 +226,8 @@ function ForumPost({ open, handleClose }) {
         });
         return;
       }
-      if (availableSeats > totalSeats) {
+
+      if (parseInt(availableSeats) > parseInt(totalSeats)) {
         enqueueSnackbar("số ghế trống không được lớn hơn tổng số ghế", {
           variant: "error",
         });

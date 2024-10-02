@@ -7,6 +7,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import ModeEditOutlineOutlinedIcon from "@mui/icons-material/ModeEditOutlineOutlined";
+import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
@@ -251,7 +252,27 @@ function Nav() {
                     </Typography>
                   </MenuItem>
                   <Divider variant="middle" component="li" />
-
+                  {user.role === "admin" ? (
+                    <MenuItem
+                      onClick={() => {
+                        navigate(`/admin/overview`);
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "start",
+                          padding: "4px 14px 4px 4px",
+                        }}
+                      >
+                        <ManageAccountsOutlinedIcon sx={{ mr: 1 }} /> Trang quản
+                        lý
+                      </Typography>
+                    </MenuItem>
+                  ) : (
+                    ""
+                  )}
                   <MenuItem onClick={handleOpenEdit}>
                     <Typography
                       sx={{

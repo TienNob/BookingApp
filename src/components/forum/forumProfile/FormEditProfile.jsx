@@ -41,7 +41,7 @@ const ForumEditProfile = ({ open, handleClose }) => {
 
   // Regex patterns for validation
   const cccdRegex = /^\d{12}$/;
-  const phoneRegex = /^0\d{9}$/;
+  const phoneRegex = /^0[0-9]{9,14}$/;
 
   // Gọi API để lấy thông tin user
   useEffect(() => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Line } from "react-chartjs-2";
+import { Line, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,6 +9,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  ArcElement,
 } from "chart.js";
 import {
   Box,
@@ -25,6 +26,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import { TurnedInNotRounded } from "@mui/icons-material";
 
 ChartJS.register(
   CategoryScale,
@@ -33,11 +35,17 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ArcElement
 );
 
 function AdminOverview() {
   const [userData, setUserData] = useState([]);
+  const [genderData, setGenderData] = useState({
+    male: 0,
+    female: 0,
+    other: 0,
+  });
   const [tripCount, setTripCount] = useState(0);
   const [ticketCount, setTicketCount] = useState(0);
   const [lastWeekTripCount, setLastWeekTripCount] = useState(0);
@@ -107,6 +115,7 @@ function AdminOverview() {
         setLastWeekUserCount(lastWeekUsers.length);
 
         processUserGrowth(users, timeRange);
+        processGenderData(users);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -167,15 +176,33 @@ function AdminOverview() {
     });
   };
 
+  const processGenderData = (users) => {
+    const genderCount = { male: 0, female: 0, other: 0 };
+
+    users.forEach((user) => {
+      console.log(user);
+
+      if (user.sex === "Nam") {
+        genderCount.male++;
+      } else if (user.sex === "Nữ") {
+        genderCount.female++;
+      } else {
+        genderCount.other++;
+      }
+    });
+
+    setGenderData(genderCount);
+  };
+
   const calculateGrowth = (current, lastWeek) => {
     if (lastWeek === 0) return "N/A"; // Nếu tuần trước không có dữ liệu
     const growth = ((current - lastWeek) / lastWeek) * 100;
-    const sign = growth > 0 ? "+" : growth < 0 ? "-" : "";
+    const sign = growth > 0 ? "+" : "";
     return `${sign}${growth.toFixed(1)}%`;
   };
 
-  const options = {
-    responsive: true,
+  const lineChartOptions = {
+    responsive: TurnedInNotRounded,
     plugins: {
       legend: {
         position: "bottom",
@@ -189,15 +216,47 @@ function AdminOverview() {
       y: {
         beginAtZero: true,
         ticks: {
-          stepSize: 10,
+          stepSize: 18,
         },
       },
     },
   };
 
+  const pieChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "bottom", // Vị trí của chú thích (legend)
+      },
+      tooltip: {
+        callbacks: {
+          label: function (tooltipItem) {
+            const label = tooltipItem.label || "";
+            const value = tooltipItem.raw || 0;
+            return `${label}: ${value}`;
+          },
+        },
+      },
+      title: {
+        display: false,
+        text: "Phân bố giới tính người dùng",
+      },
+    },
+  };
+  const pieData = {
+    labels: ["Nam", "Nữ", "Khác"],
+    datasets: [
+      {
+        data: [genderData.male, genderData.female, genderData.other],
+        backgroundColor: ["#dcf5f9", "#ffd1ba", "#fff8e0"],
+        hoverBackgroundColor: ["#dcf5f9", "#ffd1ba", "#fff8e0"],
+      },
+    ],
+  };
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography mb={2} variant="h4" gutterBottom>
         Tổng quan
       </Typography>
       <Grid mb={4} container spacing={3}>
@@ -255,7 +314,7 @@ function AdminOverview() {
         <Grid item xs={12} sm={4}>
           <Paper elevation={3} sx={{ padding: 3, borderRadius: 5 }}>
             <Typography sx={{ color: "var(--text-color)" }} variant="p">
-              Tổng số người dùng
+              Tổng số chuyến đi
             </Typography>
             <Box
               mt={2}
@@ -348,23 +407,43 @@ function AdminOverview() {
         </Grid>
       </Grid>
 
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="h6" gutterBottom>
-          Số Lượng Người Dùng Mới
-        </Typography>
-        <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-          <Select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-          >
-            <MenuItem value="day">Ngày</MenuItem>
-            <MenuItem value="month">Tháng</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-      {/* Biểu đồ */}
-      <Line data={filteredData} options={options} />
-      {/* Button Group để chọn khoảng thời gian */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={8}>
+          <Paper sx={{ p: 3, borderRadius: 5 }}>
+            <Box display="flex" alignItems="center">
+              <Typography variant="h6" sx={{ color: "var(--text-color)" }}>
+                Số lượng người dùng mới
+              </Typography>
+              <FormControl size="small" sx={{ ml: "auto" }}>
+                <Select
+                  value={timeRange}
+                  onChange={(e) => setTimeRange(e.target.value)}
+                  displayEmpty
+                >
+                  <MenuItem value="month">Theo Tháng</MenuItem>
+                  <MenuItem value="day">Theo Ngày</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box mt={2}>
+              <Line data={filteredData} options={lineChartOptions} />
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Pie Chart */}
+        <Grid item xs={12} sm={4}>
+          <Paper sx={{ p: 3, height: "100%", borderRadius: 5 }}>
+            <Typography variant="h6" sx={{ color: "var(--text-color)" }}>
+              Giới tính người dùng
+            </Typography>
+            <Box mt={3}>
+              <Pie data={pieData} options={pieChartOptions} />
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
     </Box>
   );
 }

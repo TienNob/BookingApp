@@ -9,13 +9,14 @@ const userSchema = new mongoose.Schema(
     lastName: { type: String, required: true },
     phone: { type: String, required: true },
     cccd: { type: String },
-    sex: { type: String },
-    birthDay: { type: Date },
+    sex: { type: String, required: true },
+    birthDay: { type: Date, required: true },
     password: { type: String, required: true },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Friends list
     avatar: { type: String }, // Path to the avatar image file
     coverPhoto: { type: String }, // Path to the cover photo file
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Followers list
+    role: { type: String, enum: ["admin", "user"], default: "user" }, // New role field
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt
@@ -45,6 +46,8 @@ const validate = (data) => {
       .required()
       .label("Phone"), // Updated validation
     password: passwordComplexity().required().label("Password"),
+    birthDay: Joi.date().required().label("BirthDay"), // Validate ngày sinh
+    sex: Joi.string().required().label("Sex"), // Validate giới tín
     avatar: Joi.any().optional().label("Avatar"), // Optional, file upload
     coverPhoto: Joi.any().optional().label("Cover Photo"),
   });

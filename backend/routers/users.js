@@ -51,7 +51,7 @@ router.post("/", async (req, res) => {
 router.get("/all", async (req, res) => {
   try {
     const users = await User.find().select(
-      "firstName lastName phone friends avatar followers createdAt"
+      "firstName lastName phone friends avatar followers createdAt sex birthDay role"
     );
     res.status(200).send(users);
   } catch (error) {

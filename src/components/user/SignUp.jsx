@@ -11,7 +11,15 @@ import {
   Container,
   IconButton,
   InputAdornment,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker"; // DatePicker
+import dayjs from "dayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns"; // Use the appropriate adapter
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Link, useNavigate } from "react-router-dom";
@@ -19,6 +27,7 @@ import { useSnackbar } from "notistack";
 import axios from "axios";
 import logo from "../../assets/logo.png";
 import Loadding from "../Loadding";
+
 function SignUp() {
   const { enqueueSnackbar } = useSnackbar();
   const [showPassword, setShowPassword] = useState(false);
@@ -27,6 +36,8 @@ function SignUp() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [birthDay, setBirthDay] = useState(null); // Ngày sinh
+  const [sex, setSex] = useState(""); // Giới tính
 
   const [phoneError, setPhoneError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
@@ -41,13 +52,11 @@ function SignUp() {
   };
 
   const validatePhone = (phone) => {
-    // Ràng buộc số điện thoại: Chỉ cho phép số và có ít nhất 10 ký tự
-    const phoneRegex = /^[0-9]{10,15}$/;
+    const phoneRegex = /^0[0-9]{9,14}$/;
     return phoneRegex.test(phone);
   };
 
   const validatePassword = (password) => {
-    // Ràng buộc mật khẩu: Phải có ít nhất một ký tự in hoa và một ký tự đặc biệt
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&*])[A-Za-z\d@#$%^&*]{8,}$/;
     return passwordRegex.test(password);
@@ -76,7 +85,6 @@ function SignUp() {
         "Mật khẩu phải có ít nhất một ký tự in hoa và thường một ký tự đặc biệt và dài ít nhất 8 ký tự.",
         { variant: "error" }
       );
-
       valid = false;
     } else {
       setPasswordError(false);
@@ -88,6 +96,8 @@ function SignUp() {
     setLoading(true);
 
     try {
+      const formattedBirthDay = dayjs(birthDay).format("YYYY-MM-DD");
+
       const { data: usersResponse } = await axios.get(
         "http://localhost:8080/api/users/all"
       );
@@ -99,22 +109,24 @@ function SignUp() {
         return;
       }
 
+      console.log(formattedBirthDay, sex);
       const response = await axios.post("http://localhost:8080/api/users", {
         firstName,
         lastName,
         phone,
         password,
+        birthDay: formattedBirthDay, // Gửi ngày sinh
+        sex, // Gửi giới tính
       });
+
       enqueueSnackbar("Đăng ký thành công!", { variant: "success" });
 
       setTimeout(() => {
         setLoading(false);
-
         navigate("/login");
       }, 1000);
     } catch (error) {
       setLoading(false);
-      console.error("Đăng ký thất bại:", error);
       enqueueSnackbar("Đăng ký thất bại. Vui lòng thử lại.", {
         variant: "error",
       });
@@ -186,6 +198,7 @@ function SignUp() {
                       onChange={(e) => setLastName(e.target.value)}
                     />
                   </Grid>
+
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
@@ -195,11 +208,13 @@ function SignUp() {
                       required
                       onChange={(e) => setPhone(e.target.value)}
                       helperText={
-                        phoneError && "Số điện thoại phải có 10 chữ số."
+                        phoneError &&
+                        "Số điện thoại phải có 10 chữ số và bắt đầu bằng số 0."
                       }
                       error={phoneError}
                     />
                   </Grid>
+
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
@@ -233,6 +248,35 @@ function SignUp() {
                         ),
                       }}
                     />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                      {" "}
+                      {/* Wrap here */}
+                      <DatePicker
+                        label="Ngày sinh"
+                        maxDate={new Date()}
+                        value={birthDay}
+                        onChange={(newValue) => setBirthDay(newValue)}
+                        renderInput={(params) => (
+                          <TextField {...params} fullWidth required />
+                        )}
+                      />
+                    </LocalizationProvider>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth required>
+                      <InputLabel>Giới tính</InputLabel>
+                      <Select
+                        value={sex}
+                        onChange={(e) => setSex(e.target.value)}
+                      >
+                        <MenuItem value="Nam">Nam</MenuItem>
+                        <MenuItem value="Nữ">Nữ</MenuItem>
+                        <MenuItem value="Khác">Khác</MenuItem>
+                      </Select>
+                    </FormControl>
                   </Grid>
                 </Grid>
 

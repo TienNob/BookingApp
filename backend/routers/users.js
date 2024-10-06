@@ -50,8 +50,8 @@ router.post("/", async (req, res) => {
 });
 router.get("/all", async (req, res) => {
   try {
-    const users = await User.find().select(
-      "firstName lastName phone friends avatar followers createdAt sex birthDay role"
+    const users = await User.find({ role: { $ne: "admin" } }).select(
+      "firstName lastName phone friends avatar followers createdAt sex birthDay role cccd"
     );
     res.status(200).send(users);
   } catch (error) {
@@ -62,6 +62,10 @@ router.get("/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password -__v");
     if (!user) return res.status(404).send({ message: "User not found" });
+    if (user.role === "admin")
+      return res
+        .status(403)
+        .send({ message: "Access to admin data is forbidden" });
 
     res.status(200).send(user);
   } catch (error) {

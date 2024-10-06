@@ -21,7 +21,7 @@ import axios from "axios";
 import Loadding from "../../Loadding";
 import dayjs from "dayjs"; // Thêm thư viện dayjs để xử lý định dạng ngày
 
-const ForumEditProfile = ({ open, handleClose }) => {
+const ForumEditProfile = ({ open, handleClose, userId }) => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -36,7 +36,6 @@ const ForumEditProfile = ({ open, handleClose }) => {
   const [cccdError, setCccdError] = useState(""); // Error message for CCCD
   const [phoneError, setPhoneError] = useState(""); // Error message for Phone
   const token = localStorage.getItem("token");
-  const userId = localStorage.getItem("userId");
   const { enqueueSnackbar } = useSnackbar(); // Initialize snackbar
 
   // Regex patterns for validation

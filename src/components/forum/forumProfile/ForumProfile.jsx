@@ -681,7 +681,11 @@ const ForumProfile = () => {
           imageUrl={selectedImage}
           onClose={handleCloseModalImage}
         />
-        <FormEditProfile open={openEdit} handleClose={handleCloseEdit} />
+        <FormEditProfile
+          open={openEdit}
+          handleClose={handleCloseEdit}
+          userId={userIdLocal}
+        />
       </Container>
     </Box>
   );

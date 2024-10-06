@@ -393,7 +393,11 @@ function Nav() {
         </Toolbar>
       </Container>
       <UserSearchDialog open={open} onClose={handleClose} />
-      <ForumEditProfile open={openEdit} handleClose={handleCloseEdit} />
+      <ForumEditProfile
+        open={openEdit}
+        handleClose={handleCloseEdit}
+        userId={userId}
+      />
       <NotificationDialog
         actorId={userId}
         open={openNoti}

@@ -17,6 +17,7 @@ import AdminSidebar from "./AdminSidebar";
 import AdminNav from "./AdminNav";
 import AdminTrips from "./adminTrip/AdminTrips";
 import AdminOverview from "./adminOverview/AdminOverview";
+import AdminUsers from "./adminUsers/AdminUsers";
 import { Routes, Route } from "react-router-dom";
 
 function Admin(params) {
@@ -64,6 +65,7 @@ function Admin(params) {
         <Routes>
           <Route path="trips" element={<AdminTrips />} />
           <Route path="overview" element={<AdminOverview />} />
+          <Route path="users" element={<AdminUsers />} />
         </Routes>
       </Box>
     </Box>

@@ -40,20 +40,38 @@ function AdminSidebar() {
         <ListItem
           sx={{
             borderRadius: "10px",
-            backgroundColor: isActive("/admin/bus")
+            backgroundColor: isActive("/admin/trips")
               ? "var(--bg-btn)"
               : "transparent",
             "&:hover": {
-              backgroundColor: isActive("/admin/bus")
-                ? "var(--hover-bg-btn)"
-                : "var(light-grey)",
+              backgroundColor: "var(--hover-bg-btn)",
             },
-            color: isActive("/admin/bus") ? "var(--primary-color)" : "inherit",
+            color: isActive("/admin/trips")
+              ? "var(--primary-color)"
+              : "inherit",
           }}
           button
           onClick={() => handleListItemClick("/admin/trips")}
         >
           <ListItemText primary="Chuyến đi" />
+        </ListItem>
+        <ListItem
+          sx={{
+            borderRadius: "10px",
+            backgroundColor: isActive("/admin/users")
+              ? "var(--bg-btn)"
+              : "transparent",
+            "&:hover": {
+              backgroundColor: "var(--hover-bg-btn)",
+            },
+            color: isActive("/admin/users")
+              ? "var(--primary-color)"
+              : "inherit",
+          }}
+          button
+          onClick={() => handleListItemClick("/admin/users")}
+        >
+          <ListItemText primary="Người dùng" />
         </ListItem>
 
         {/* Add more items as needed */}

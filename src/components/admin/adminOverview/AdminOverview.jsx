@@ -93,6 +93,7 @@ function AdminOverview() {
         );
 
         setLastWeekTicketCount(lastWeekTickets.length);
+        console.log(lastWeekTickets);
       } catch (error) {
         console.error("Error fetching ticket data:", error);
       }
@@ -195,7 +196,7 @@ function AdminOverview() {
   };
 
   const calculateGrowth = (current, lastWeek) => {
-    if (lastWeek === 0) return "N/A"; // Nếu tuần trước không có dữ liệu
+    if (lastWeek === 0) return "Không có dữ liệu"; // Nếu tuần trước không có dữ liệu
     const growth = ((current - lastWeek) / lastWeek) * 100;
     const sign = growth > 0 ? "+" : "";
     return `${sign}${growth.toFixed(1)}%`;
@@ -262,7 +263,10 @@ function AdminOverview() {
       <Grid mb={4} container spacing={3}>
         {/* Paper 1: Tổng số người dùng */}
         <Grid item xs={12} sm={4}>
-          <Paper elevation={3} sx={{ padding: 3, borderRadius: 5 }}>
+          <Paper
+            elevation={3}
+            sx={{ padding: 3, borderRadius: 5, height: "100%" }}
+          >
             <Typography sx={{ color: "var(--text-color)" }} variant="p">
               Tổng số người dùng
             </Typography>
@@ -333,21 +337,21 @@ function AdminOverview() {
               sx={{ display: "flex", alignItems: "center", mt: 1 }}
               variant="caption"
             >
-              {lastWeekUserCount !== 0 && (
+              {lastWeekTripCount !== 0 && (
                 <ArrowDropUpIcon
                   sx={{
                     color:
-                      tripCount > lastWeekUserCount
+                      tripCount > lastWeekTripCount
                         ? "var(--primary-color)"
-                        : tripCount < lastWeekUserCount
+                        : tripCount < lastWeekTripCount
                         ? "var(--red-color)"
                         : "grey",
                     transform:
-                      tripCount < lastWeekUserCount ? "rotate(180deg)" : "none",
+                      tripCount < lastWeekTripCount ? "rotate(180deg)" : "none",
                   }}
                 />
               )}{" "}
-              {calculateGrowth(tripCount, lastWeekUserCount)}
+              {calculateGrowth(tripCount, lastWeekTripCount)}
               <Typography
                 variant="caption"
                 sx={{ color: "var(--grey)", ml: 1 }}
@@ -379,23 +383,23 @@ function AdminOverview() {
               sx={{ display: "flex", alignItems: "center", mt: 1 }}
               variant="caption"
             >
-              {lastWeekUserCount !== 0 && (
+              {lastWeekTicketCount !== 0 && (
                 <ArrowDropUpIcon
                   sx={{
                     color:
-                      ticketCount > lastWeekUserCount
+                      ticketCount > lastWeekTicketCount
                         ? "var(--primary-color)"
-                        : ticketCount < lastWeekUserCount
+                        : ticketCount < lastWeekTicketCount
                         ? "var(--red-color)"
                         : "grey",
                     transform:
-                      ticketCount < lastWeekUserCount
+                      ticketCount < lastWeekTicketCount
                         ? "rotate(180deg)"
                         : "none",
                   }}
                 />
               )}{" "}
-              {calculateGrowth(ticketCount, lastWeekUserCount)}
+              {calculateGrowth(ticketCount, lastWeekTicketCount)}
               <Typography
                 variant="caption"
                 sx={{ color: "var(--grey)", ml: 1 }}

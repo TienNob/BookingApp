@@ -15,8 +15,12 @@ import {
   Menu,
   MenuItem,
   ListItemIcon,
+  Grid,
   ListItemText,
 } from "@mui/material";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DataGrid } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -26,7 +30,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { useSnackbar } from "notistack";
 import Loadding from "../../Loadding";
 
-const columns = (handleEdit, handleDelete) => [
+const columns = (handleEdit, handleDelete, handleViewDetails) => [
   { field: "index", headerName: "ID", flex: 0.1 },
   {
     field: "locations",
@@ -66,12 +70,13 @@ const columns = (handleEdit, handleDelete) => [
         params={params.row}
         handleEdit={handleEdit}
         handleDelete={handleDelete}
+        handleViewDetails={handleViewDetails} // Pass handleViewDetails
       />
     ),
   },
 ];
 
-function ActionsMenu({ params, handleEdit, handleDelete }) {
+function ActionsMenu({ params, handleEdit, handleDelete, handleViewDetails }) {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event) => {
@@ -95,7 +100,7 @@ function ActionsMenu({ params, handleEdit, handleDelete }) {
       >
         <MenuItem
           onClick={() => {
-            handleView(params); // Add this to open the view details dialog
+            handleViewDetails(params);
             handleClose();
           }}
         >
@@ -140,13 +145,14 @@ function AdminTrips() {
     locations: [],
     totalSeats: "",
     costPerKm: "",
+    username: "",
   });
   const [inputLocation, setInputLocation] = useState("");
   const [editingTrip, setEditingTrip] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
+  const [viewDetails, setViewDetails] = useState(null);
   const token = localStorage.getItem("token");
-  console.log(rows);
 
   const fetchUserName = async (userId) => {
     try {
@@ -188,86 +194,59 @@ function AdminTrips() {
     fetchTripsWithUserNames();
   }, [enqueueSnackbar]);
 
-  const handleAddNew = () => {
-    setEditingTrip(null);
-    setOpenDialog(true);
-  };
-
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setNewTrip({ locations: [], totalSeats: "", costPerKm: "" });
+    setNewTrip({ locations: [], totalSeats: "", costPerKm: "", username: "" });
     setInputLocation("");
   };
 
   const handleSubmit = () => {
     setLoading(true);
-    console.log(newTrip);
+    const updatedTrip = {
+      seatsAvailable: newTrip.seatsAvailable,
+      totalSeats: newTrip.totalSeats,
+      locations: newTrip.locations,
+      costPerKm: newTrip.costPerKm,
+      prices: newTrip.prices,
+      departureTime: newTrip.departureTime,
+      user: newTrip.user,
+    };
 
-    if (editingTrip) {
-      axios
-        .put(
-          `http://localhost:8080/api/trips/${editingTrip._id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-          newTrip
-        )
-        .then((response) => {
-          const updatedRows = rows.map((row) =>
-            row._id === editingTrip._id
-              ? { ...newTrip, _id: row._id, index: row.index }
-              : row
-          );
-          setRows(updatedRows);
-          enqueueSnackbar("Cập nhật chuyến đi thành công", {
-            variant: "success",
-          });
-          handleCloseDialog();
-        })
-        .catch((error) => {
-          console.error("Có lỗi khi cập nhật chuyến đi!", error);
-          enqueueSnackbar("Lỗi khi cập nhật chuyến đi", { variant: "error" });
-        })
-        .finally(() => {
-          setTimeout(() => {
-            setLoading(false);
-          }, 500);
+    axios
+      .put(`http://localhost:8080/api/trips/${editingTrip._id}`, updatedTrip, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        const updatedRows = rows.map((row) =>
+          row._id === editingTrip._id ? { ...row, ...newTrip } : row
+        );
+        setRows(updatedRows);
+        enqueueSnackbar("Cập nhật chuyến đi thành công", {
+          variant: "success",
         });
-    } else {
-      axios
-        .post("http://localhost:8080/api/trips", newTrip, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => {
-          setRows([
-            ...rows,
-            { ...newTrip, _id: response.data._id, index: rows.length + 1 },
-          ]);
-          enqueueSnackbar("Thêm chuyến đi thành công", { variant: "success" });
-          handleCloseDialog();
-        })
-        .catch((error) => {
-          console.error("Có lỗi khi thêm chuyến đi!", error);
-          enqueueSnackbar("Lỗi khi thêm chuyến đi", { variant: "error" });
-        })
-        .finally(() => {
-          setTimeout(() => {
-            setLoading(false);
-          }, 500);
-        });
-    }
+        handleCloseDialog();
+      })
+      .catch((error) => {
+        console.error("Có lỗi khi cập nhật chuyến đi!", error);
+        enqueueSnackbar("Lỗi khi cập nhật chuyến đi", { variant: "error" });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const handleEdit = (trip) => {
     setEditingTrip(trip);
     setNewTrip({
-      locations: trip.locations,
-      totalSeats: trip.totalSeats,
-      costPerKm: trip.costPerKm,
+      locations: trip.locations || [],
+      totalSeats: trip.totalSeats || "",
+      seatsAvailable: trip.seatsAvailable || "",
+      costPerKm: trip.costPerKm || "",
+      prices: trip.prices || [],
+      departureTime: trip.departureTime || "",
+      user: trip.user || "",
     });
     setOpenDialog(true);
   };
@@ -275,7 +254,11 @@ function AdminTrips() {
   const handleDelete = (trip) => {
     setLoading(true);
     axios
-      .delete(`http://localhost:8080/api/trips/${trip._id}`)
+      .delete(`http://localhost:8080/api/trips/${trip._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then(() => {
         setRows(rows.filter((row) => row._id !== trip._id));
         enqueueSnackbar("Xóa chuyến đi thành công", { variant: "success" });
@@ -297,7 +280,11 @@ function AdminTrips() {
     setLoading(true);
     Promise.all(
       selectedRows.map((row) =>
-        axios.delete(`http://localhost:8080/api/trips/${row._id}`)
+        axios.delete(`http://localhost:8080/api/trips/${row._id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
       )
     )
       .then(() => {
@@ -337,6 +324,10 @@ function AdminTrips() {
     });
   };
 
+  const handleViewDetails = (trip) => {
+    setViewDetails(trip); // Set the selected trip details to state
+  };
+
   return (
     <Box sx={{ width: "100%" }}>
       <Box
@@ -372,29 +363,14 @@ function AdminTrips() {
               <DeleteIcon sx={{ mr: 1 }} /> Xóa ({selectedRows.length})
             </Button>
           ) : (
-            <Button
-              sx={{
-                py: 1,
-                px: 2,
-                borderRadius: "8px",
-                backgroundColor: "var(--primary-color)",
-                "&:hover": {
-                  backgroundColor: "var(--hover-color)",
-                },
-              }}
-              variant="contained"
-              color="primary"
-              onClick={handleAddNew}
-            >
-              <AddIcon sx={{ mr: 1 }} /> Thêm Mới
-            </Button>
+            ""
           )}
         </Box>{" "}
       </Box>{" "}
       <DataGrid
         sx={{ color: "var(--text-color)" }} // Keep your existing styles
         rows={rows}
-        columns={columns(handleEdit, handleDelete)}
+        columns={columns(handleEdit, handleDelete, handleViewDetails)}
         getRowId={(row) => row._id} // Ensure each row uses _id as the unique identifier
         checkboxSelection
         onRowSelectionModelChange={(newSelection) => {
@@ -444,7 +420,17 @@ function AdminTrips() {
             }}
           >
             <TextField
-              label="Số chỗ ngồi"
+              label="Số chỗ ngồi trống"
+              variant="outlined"
+              value={newTrip.seatsAvailable}
+              onChange={(e) =>
+                setNewTrip({ ...newTrip, seatsAvailable: e.target.value })
+              }
+              fullWidth
+            />
+
+            <TextField
+              label="Tổng số chỗ"
               variant="outlined"
               value={newTrip.totalSeats}
               onChange={(e) =>
@@ -452,6 +438,7 @@ function AdminTrips() {
               }
               fullWidth
             />
+
             <TextField
               label="Giá mỗi km"
               variant="outlined"
@@ -461,6 +448,35 @@ function AdminTrips() {
               }
               fullWidth
             />
+
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DateTimePicker
+                label="Thời gian khởi hành"
+                value={
+                  newTrip.departureTime ? new Date(newTrip.departureTime) : null
+                }
+                onChange={
+                  (newValue) =>
+                    setNewTrip({
+                      ...newTrip,
+                      departureTime: newValue.toISOString(),
+                    }) // Save as ISO string
+                }
+                renderInput={(params) => (
+                  <TextField {...params} fullWidth variant="outlined" />
+                )}
+              />
+            </LocalizationProvider>
+
+            <TextField
+              label="ID Người đăng"
+              disabled
+              variant="outlined"
+              value={newTrip.user}
+              onChange={(e) => setNewTrip({ ...newTrip, user: e.target.value })}
+              fullWidth
+            />
+
             <TextField
               label="Địa điểm"
               variant="outlined"
@@ -483,6 +499,7 @@ function AdminTrips() {
               }}
               fullWidth
             />
+
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
               {newTrip.locations.map((location, index) => (
                 <Chip
@@ -498,6 +515,7 @@ function AdminTrips() {
             </Box>
           </Box>
         </DialogContent>
+
         <DialogActions>
           <Button onClick={handleCloseDialog} color="secondary">
             Hủy
@@ -513,6 +531,68 @@ function AdminTrips() {
             }
           >
             {editingTrip ? "Cập nhật" : "Thêm"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={Boolean(viewDetails)} onClose={() => setViewDetails(null)}>
+        <DialogTitle>Chi tiết chuyến đi</DialogTitle>
+        <DialogContent>
+          {viewDetails && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={12}>
+                <Typography variant="body1">
+                  <strong>Chuyến đi:</strong> {viewDetails.locations[0]} -{" "}
+                  {viewDetails.locations[1]}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="body1">
+                  <strong>Số chỗ trống:</strong> {viewDetails.seatsAvailable}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="body1">
+                  <strong>Tổng số chỗ:</strong> {viewDetails.totalSeats}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="body1">
+                  <strong>Giá mỗi km:</strong> {viewDetails.costPerKm} VND
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="body1">
+                  <strong>Người đăng:</strong> {viewDetails.userName}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="body1">
+                  <strong>Thời gian khởi hành:</strong>{" "}
+                  {new Date(viewDetails.departureTime).toLocaleString()}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="body1">
+                  <strong>Trạng thái:</strong>{" "}
+                  {viewDetails.state === 0 ? "Hoạt động" : "Ngưng hoạt động"}
+                </Typography>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            sx={{
+              borderRadius: "8px",
+              backgroundColor: "var(--primary-color)",
+              "&:hover": {
+                backgroundColor: "var(--hover-color)",
+              },
+            }}
+            variant="contained"
+            onClick={() => setViewDetails(null)}
+          >
+            Đóng
           </Button>
         </DialogActions>
       </Dialog>

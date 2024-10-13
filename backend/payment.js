@@ -49,7 +49,7 @@ router.post("/", async (req, res) => {
       embed_data: JSON.stringify(embed_data),
       amount: amount,
       callback_url:
-        "https://d320-103-156-4-233.ngrok-free.app/api/payment/callback",
+        "https://b47f-103-156-2-76.ngrok-free.app/api/payment/callback",
       description: description || `Payment for order #${transID}`,
       bank_code: "",
     };

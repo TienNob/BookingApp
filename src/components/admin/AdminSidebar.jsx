@@ -40,6 +40,8 @@ function AdminSidebar() {
         <ListItem
           sx={{
             borderRadius: "10px",
+            mb: 0.5,
+
             backgroundColor: isActive("/admin/trips")
               ? "var(--bg-btn)"
               : "transparent",

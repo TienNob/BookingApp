@@ -261,6 +261,7 @@ function ForumPost({ open, handleClose }) {
           seatsAvailable: availableSeats,
           totalSeats: totalSeats,
           departureTime: departureTime.toISOString(),
+          userId: userId,
         };
 
         // Post the trip data first

@@ -66,11 +66,10 @@ router.put("/:id", authenticateToken, async (req, res) => {
     costPerKm,
     prices,
     departureTime,
+    userId,
   } = req.body;
 
   try {
-    const user = req.user._id; // Lấy user từ token
-
     const trip = await Trip.findByIdAndUpdate(
       req.params.id,
       {
@@ -80,7 +79,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
         costPerKm,
         prices,
         departureTime,
-        user,
+        userId,
       },
       { new: true, runValidators: true }
     );

@@ -51,7 +51,7 @@ router.post("/", async (req, res) => {
 router.get("/all", async (req, res) => {
   try {
     const users = await User.find({ role: { $ne: "admin" } }).select(
-      "firstName lastName phone friends avatar followers createdAt sex birthDay role cccd"
+      "firstName lastName phone friends avatar followers createdAt sex birthDay role cccd totalCost totalIncome"
     );
     res.status(200).send(users);
   } catch (error) {
@@ -100,6 +100,30 @@ router.put("/:id", authenticateToken, async (req, res) => {
       .send({ message: "User information updated successfully", user });
   } catch (error) {
     console.error("Error updating user:", error);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
+router.delete("/:id", authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).send({ message: "User not found" });
+
+    // Remove avatar if it exists
+    if (user.avatar && fs.existsSync(`.${user.avatar}`)) {
+      fs.unlinkSync(`.${user.avatar}`);
+    }
+
+    // Remove cover photo if it exists
+    if (user.coverPhoto && fs.existsSync(`.${user.coverPhoto}`)) {
+      fs.unlinkSync(`.${user.coverPhoto}`);
+    }
+
+    // Delete the user from the database
+    await User.findByIdAndDelete(req.params.id);
+
+    res.status(200).send({ message: "User deleted successfully" });
+  } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });
   }
 });

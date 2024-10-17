@@ -26,9 +26,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ControlPointIcon from "@mui/icons-material/ControlPoint";
-import AddIcon from "@mui/icons-material/Add";
 import { useSnackbar } from "notistack";
 import Loadding from "../../Loadding";
+import EditTripDialog from "./EditTripDialog";
 
 const columns = (handleEdit, handleDelete, handleViewDetails) => [
   { field: "index", headerName: "ID", flex: 0.1 },
@@ -141,13 +141,6 @@ function AdminTrips() {
   const { enqueueSnackbar } = useSnackbar();
   const [rows, setRows] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [newTrip, setNewTrip] = useState({
-    locations: [],
-    totalSeats: "",
-    costPerKm: "",
-    username: "",
-  });
-  const [inputLocation, setInputLocation] = useState("");
   const [editingTrip, setEditingTrip] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
@@ -196,59 +189,12 @@ function AdminTrips() {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setNewTrip({ locations: [], totalSeats: "", costPerKm: "", username: "" });
-    setInputLocation("");
-  };
-
-  const handleSubmit = () => {
-    setLoading(true);
-    const updatedTrip = {
-      seatsAvailable: newTrip.seatsAvailable,
-      totalSeats: newTrip.totalSeats,
-      locations: newTrip.locations,
-      costPerKm: newTrip.costPerKm,
-      prices: newTrip.prices,
-      departureTime: newTrip.departureTime,
-      user: newTrip.user,
-    };
-
-    axios
-      .put(`http://localhost:8080/api/trips/${editingTrip._id}`, updatedTrip, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        const updatedRows = rows.map((row) =>
-          row._id === editingTrip._id ? { ...row, ...newTrip } : row
-        );
-        setRows(updatedRows);
-        enqueueSnackbar("Cập nhật chuyến đi thành công", {
-          variant: "success",
-        });
-        handleCloseDialog();
-      })
-      .catch((error) => {
-        console.error("Có lỗi khi cập nhật chuyến đi!", error);
-        enqueueSnackbar("Lỗi khi cập nhật chuyến đi", { variant: "error" });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    setEditingTrip(null);
   };
 
   const handleEdit = (trip) => {
-    setEditingTrip(trip);
-    setNewTrip({
-      locations: trip.locations || [],
-      totalSeats: trip.totalSeats || "",
-      seatsAvailable: trip.seatsAvailable || "",
-      costPerKm: trip.costPerKm || "",
-      prices: trip.prices || [],
-      departureTime: trip.departureTime || "",
-      user: trip.user || "",
-    });
     setOpenDialog(true);
+    setEditingTrip(trip);
   };
 
   const handleDelete = (trip) => {
@@ -303,25 +249,6 @@ function AdminTrips() {
           setLoading(false);
         }, 500);
       });
-  };
-
-  const handleAddLocation = () => {
-    if (inputLocation && !newTrip.locations.includes(inputLocation)) {
-      setNewTrip({
-        ...newTrip,
-        locations: [...newTrip.locations, inputLocation],
-      });
-      setInputLocation("");
-    }
-  };
-
-  const handleDeleteLocation = (locationToDelete) => {
-    setNewTrip({
-      ...newTrip,
-      locations: newTrip.locations.filter(
-        (location) => location !== locationToDelete
-      ),
-    });
   };
 
   const handleViewDetails = (trip) => {
@@ -405,135 +332,14 @@ function AdminTrips() {
             `${from}–${to} của ${count}`,
         }}
       />
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>
-          {editingTrip ? "Chỉnh sửa chuyến đi" : "Thêm chuyến đi"}
-        </DialogTitle>
-        <DialogContent>
-          <Box
-            component="form"
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-              mt: 1,
-            }}
-          >
-            <TextField
-              label="Số chỗ ngồi trống"
-              variant="outlined"
-              value={newTrip.seatsAvailable}
-              onChange={(e) =>
-                setNewTrip({ ...newTrip, seatsAvailable: e.target.value })
-              }
-              fullWidth
-            />
-
-            <TextField
-              label="Tổng số chỗ"
-              variant="outlined"
-              value={newTrip.totalSeats}
-              onChange={(e) =>
-                setNewTrip({ ...newTrip, totalSeats: e.target.value })
-              }
-              fullWidth
-            />
-
-            <TextField
-              label="Giá mỗi km"
-              variant="outlined"
-              value={newTrip.costPerKm}
-              onChange={(e) =>
-                setNewTrip({ ...newTrip, costPerKm: e.target.value })
-              }
-              fullWidth
-            />
-
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DateTimePicker
-                label="Thời gian khởi hành"
-                value={
-                  newTrip.departureTime ? new Date(newTrip.departureTime) : null
-                }
-                onChange={
-                  (newValue) =>
-                    setNewTrip({
-                      ...newTrip,
-                      departureTime: newValue.toISOString(),
-                    }) // Save as ISO string
-                }
-                renderInput={(params) => (
-                  <TextField {...params} fullWidth variant="outlined" />
-                )}
-              />
-            </LocalizationProvider>
-
-            <TextField
-              label="ID Người đăng"
-              disabled
-              variant="outlined"
-              value={newTrip.user}
-              onChange={(e) => setNewTrip({ ...newTrip, user: e.target.value })}
-              fullWidth
-            />
-
-            <TextField
-              label="Địa điểm"
-              variant="outlined"
-              value={inputLocation}
-              onChange={(e) => setInputLocation(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddLocation();
-                }
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleAddLocation}>
-                      <ControlPointIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              fullWidth
-            />
-
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-              {newTrip.locations.map((location, index) => (
-                <Chip
-                  key={index}
-                  label={location}
-                  onDelete={() => handleDeleteLocation(location)}
-                  sx={{
-                    backgroundColor: "#f5f5f5",
-                    "& .MuiChip-deleteIcon": { color: "#f50057" },
-                  }}
-                />
-              ))}
-            </Box>
-          </Box>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="secondary">
-            Hủy
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            color="primary"
-            variant="contained"
-            disabled={
-              !newTrip.totalSeats ||
-              !newTrip.costPerKm ||
-              newTrip.locations.length === 0
-            }
-          >
-            {editingTrip ? "Cập nhật" : "Thêm"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <EditTripDialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        trip={editingTrip}
+        token={token}
+        rows={rows}
+        setRows={setRows}
+      />
       <Dialog open={Boolean(viewDetails)} onClose={() => setViewDetails(null)}>
         <DialogTitle>Chi tiết chuyến đi</DialogTitle>
         <DialogContent>

@@ -29,6 +29,10 @@ const ticketSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    departureTime: {
+      type: Date,
+      required: true,
+    },
     paymentStatus: {
       type: String,
       enum: ["Pending", "Paid", "Failed"], // Trạng thái thanh toán
@@ -37,6 +41,13 @@ const ticketSchema = new mongoose.Schema(
     purchaseTime: {
       type: Date,
       default: Date.now,
+    },
+    paymentTransactionId: {
+      type: String,
+    },
+    state: {
+      type: Number,
+      default: 0, // Mặc định là 0
     },
   },
   {

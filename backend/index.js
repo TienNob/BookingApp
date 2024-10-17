@@ -8,8 +8,9 @@ const authRoutes = require("./routers/auth");
 const postRoutes = require("./routers/posts");
 const tripRoutes = require("./routers/trips");
 const ticketRoutes = require("./routers/tickets");
+const transactions = require("./routers/transactions");
 const notificationRoutes = require("./routers/notification");
-const payment = require("./payment");
+const payment = require("./services/payment");
 const messageRoutes = require("./routers/messages");
 const initSocket = require("./socket"); // Import file socket.js
 
@@ -28,6 +29,7 @@ app.use("/api/posts", postRoutes);
 app.use("/api/trips", tripRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/transactions", transactions);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/payment", payment);
 

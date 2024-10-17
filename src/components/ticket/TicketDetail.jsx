@@ -103,6 +103,7 @@ const TicketDetail = () => {
           userId: userId,
           actorId: user._id,
           seatsPurchased: seatOrder,
+          departureTime: trip.departureTime,
         },
         {
           headers: {

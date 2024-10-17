@@ -1,7 +1,9 @@
 import { List, ListItem, ListItemText, Box } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import imgLogo from "../../assets/ImgLogo.png";
-
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import CommuteIcon from "@mui/icons-material/Commute";
+import PeopleIcon from "@mui/icons-material/People";
 function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,6 +37,14 @@ function AdminSidebar() {
           button
           onClick={() => handleListItemClick("/admin/overview")}
         >
+          <DashboardIcon
+            sx={{
+              mr: 1,
+              color: isActive("/admin/overview")
+                ? "var(--primary-color)"
+                : "var(--grey)",
+            }}
+          />
           <ListItemText primary="Tổng quan" />
         </ListItem>
         <ListItem
@@ -55,6 +65,14 @@ function AdminSidebar() {
           button
           onClick={() => handleListItemClick("/admin/trips")}
         >
+          <CommuteIcon
+            sx={{
+              mr: 1,
+              color: isActive("/admin/trips")
+                ? "var(--primary-color)"
+                : "var(--grey)",
+            }}
+          />
           <ListItemText primary="Chuyến đi" />
         </ListItem>
         <ListItem
@@ -73,6 +91,14 @@ function AdminSidebar() {
           button
           onClick={() => handleListItemClick("/admin/users")}
         >
+          <PeopleIcon
+            sx={{
+              mr: 1,
+              color: isActive("/admin/users")
+                ? "var(--primary-color)"
+                : "var(--grey)",
+            }}
+          />{" "}
           <ListItemText primary="Người dùng" />
         </ListItem>
 

@@ -20,9 +20,14 @@ import {
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import DeleteIcon from "@mui/icons-material/Delete";
 import Loadding from "../Loadding";
 import axios from "axios";
-
+import { useSnackbar } from "notistack";
+import EditTripDialog from "../admin/adminTrip/EditTripDialog";
 const TripTable = () => {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,8 +35,13 @@ const TripTable = () => {
   const [openRows, setOpenRows] = useState({}); // For handling open/close state of each row
   const [searchTerm, setSearchTerm] = useState(""); // Search term state
   const [filter, setFilter] = useState("all"); // Filter state
+  const [anchorEl, setAnchorEl] = useState(null); // For handling menu open state
+  const [selectedTrip, setSelectedTrip] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
   const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   // Fetch trips from the API
   useEffect(() => {
@@ -49,6 +59,49 @@ const TripTable = () => {
 
   const handleViewDetail = (tripId) => {
     navigate(`/ticket-detail/${tripId}`);
+  };
+  const handleEdit = (tripId) => {
+    const tripToEdit = trips.find((trip) => trip._id === tripId); // Find the trip by tripId
+    setSelectedTrip(tripToEdit);
+    setOpenDialog(true);
+    setAnchorEl(null);
+  };
+  console.log(selectedTrip);
+
+  const handleDelete = (tripId) => {
+    setLoading(true);
+    axios
+      .delete(`http://localhost:8080/api/trips/${tripId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(() => {
+        setTrips(trips.filter((trip) => trip._id !== tripId));
+        setAnchorEl(null);
+
+        enqueueSnackbar("Xóa chuyến đi thành công", { variant: "success" });
+      })
+      .catch((error) => {
+        console.error("Có lỗi khi xóa chuyến đi!", error);
+        enqueueSnackbar("Lỗi khi xóa chuyến đi", { variant: "error" });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+  // Handle menu actions
+  const handleMenuOpen = (event, tripId) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedTrip(tripId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedTrip(null);
   };
   // Toggle row open/close state
   const handleRowClick = (tripId) => {
@@ -127,7 +180,7 @@ const TripTable = () => {
               <TableCell sx={{ minWidth: 100 }}>Số chỗ trống</TableCell>
               <TableCell sx={{ minWidth: 120 }}>Thời gian xuất phát</TableCell>
               <TableCell sx={{ minWidth: 120 }}>Trạng thái</TableCell>
-              <TableCell sx={{ minWidth: 100 }}>Xem chi tiết</TableCell>
+              <TableCell sx={{ minWidth: 100 }}>Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -158,19 +211,36 @@ const TripTable = () => {
                   <TableCell>
                     {trip.state === 0 ? "Hoạt động" : "Ngưng hoạt động"}
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      color: "var(--primary-color)",
-                      textDecoration: "underline",
-                      transition: "all ease 0.3s",
-                      "&:hover": {
-                        cursor: "pointer",
-                        color: "var(--hover-color)",
-                      },
-                    }}
-                    onClick={() => handleViewDetail(trip._id)}
-                  >
-                    Xem thêm
+                  <TableCell>
+                    <IconButton
+                      onClick={(event) => handleMenuOpen(event, trip._id)}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={handleMenuClose}
+                    >
+                      <MenuItem
+                        sx={{ px: 2, py: 1 }}
+                        onClick={() => handleViewDetail(selectedTrip)}
+                      >
+                        <VisibilityIcon sx={{ mr: 1 }} /> Xem chi tiết
+                      </MenuItem>
+                      <MenuItem
+                        sx={{ px: 2, py: 1 }}
+                        onClick={() => handleEdit(selectedTrip)}
+                      >
+                        <EditIcon sx={{ mr: 1 }} /> Chỉnh sửa
+                      </MenuItem>
+                      <MenuItem
+                        sx={{ color: "var(--red)", px: 2, py: 1 }}
+                        onClick={() => handleDelete(selectedTrip)}
+                      >
+                        <DeleteIcon sx={{ mr: 1 }} /> Xóa
+                      </MenuItem>
+                    </Menu>
                   </TableCell>
                 </TableRow>
 
@@ -234,6 +304,14 @@ const TripTable = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <EditTripDialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        trip={selectedTrip}
+        token={token}
+        rows={trips}
+        setRows={setTrips}
+      />
     </Container>
   );
 };

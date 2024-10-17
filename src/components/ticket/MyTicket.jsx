@@ -1,25 +1,40 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Divider, Grid, Container } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import {
+  Box,
+  Typography,
+  Divider,
+  Grid,
+  Container,
+  IconButton,
+  Menu,
+  MenuItem,
+} from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import axios from "axios";
+import { useSnackbar } from "notistack";
 
 function MyTicket() {
-  const [tickets, setTickets] = useState([]); // Initialize as an empty array
+  const [tickets, setTickets] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null); // Menu anchor element
+  const [selectedTicketId, setSelectedTicketId] = useState(null); // Selected ticket for menu actions
   const userId = localStorage.getItem("userId");
+  const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
 
   // Fetch ticket data from API
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/tickets"); // API lấy toàn bộ vé
+        const response = await axios.get("http://localhost:8080/api/tickets");
         const fetchedTickets = response.data;
 
-        // Lọc ra tất cả các vé có ticket.user._id trùng với userId
         const userTickets = fetchedTickets.filter((ticket) => {
-          console.log(ticket.user._id, userId); // Kiểm tra log để đảm bảo bạn đang so sánh đúng
-          return ticket.user._id === userId; // So sánh ticket.user._id với userId
+          return ticket.user._id === userId;
         });
 
-        // Set state với danh sách vé đã lọc
         setTickets(userTickets);
       } catch (error) {
         console.error("Error fetching ticket data:", error);
@@ -27,26 +42,75 @@ function MyTicket() {
     };
 
     fetchTickets();
-  }, [userId]); // Chạy lại nếu userId thay đổi
+  }, [userId]);
+
+  // Handle menu open
+  const handleMenuOpen = (event, ticketId) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedTicketId(ticketId);
+  };
+
+  // Handle menu close
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedTicketId(null);
+  };
+
+  // Handle cancel ticket
+  const handleCancelTicket = async () => {
+    try {
+      // Fetch the selected ticket to get trip departure time
+      const selectedTicket = tickets.find(
+        (ticket) => ticket._id === selectedTicketId
+      );
+
+      if (!selectedTicket) {
+        enqueueSnackbar("Vé không tồn tại.", { variant: "error" });
+        return;
+      }
+
+      // Get the departure time of the trip
+      const departureTime = new Date(selectedTicket.trip.departureTime);
+      const currentTime = new Date();
+
+      // Calculate the difference between the current time and the departure time
+      const timeDifference = departureTime - currentTime;
+      const hoursBeforeDeparture = timeDifference / (1000 * 60 * 60); // Convert to hours
+
+      // Check if the cancellation is within 24 hours
+      if (hoursBeforeDeparture < 24) {
+        enqueueSnackbar("Không thể hủy vé trước 24 tiếng giờ khởi hành.", {
+          variant: "error",
+        });
+        return; // Exit if within 24 hours of departure
+      }
+
+      // Proceed with cancellation if outside the 24-hour window
+      await axios.delete(
+        `http://localhost:8080/api/tickets/${selectedTicketId}`
+      );
+      setTickets((prevTickets) =>
+        prevTickets.filter((ticket) => ticket._id !== selectedTicketId)
+      );
+      enqueueSnackbar("Hủy vé thành công!", { variant: "success" });
+    } catch (error) {
+      enqueueSnackbar("Lỗi khi hủy vé!", { variant: "error" });
+      console.error("Error cancelling ticket:", error);
+    } finally {
+      handleMenuClose();
+    }
+  };
 
   if (tickets.length === 0) {
     return (
-      <Typography
-        sx={{
-          marginTop: "100px",
-        }}
-      >
+      <Typography sx={{ marginTop: "100px" }}>
         Không có vé nào của bạn.
       </Typography>
     );
   }
 
   return (
-    <Box
-      sx={{
-        marginTop: "100px",
-      }}
-    >
+    <Box sx={{ marginTop: "100px" }}>
       <Container>
         <Grid container spacing={2}>
           {tickets.map((ticket) => (
@@ -56,8 +120,9 @@ function MyTicket() {
                   p: 2,
                   border: "1px solid #ccc",
                   borderRadius: "8px",
-                  mb: 2, // Add margin between tickets
+                  mb: 2,
                   height: "100%",
+                  position: "relative", // Make the box relative for positioning the menu
                 }}
               >
                 <Typography variant="h6" sx={{ mb: 2 }}>
@@ -89,6 +154,25 @@ function MyTicket() {
                     {ticket.amountPaid} VND
                   </span>{" "}
                 </Typography>
+                <Typography variant="body1" sx={{ mt: 1 }}>
+                  Thời gian khởi hành:{" "}
+                  <span style={{ color: "var(--secondary-color)" }}>
+                    {new Date(ticket.departureTime).toLocaleString("vi-VN")}
+                  </span>{" "}
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 1 }}>
+                  Số tiền đã thanh toán:{" "}
+                  <span
+                    style={{
+                      color:
+                        ticket.state === 0
+                          ? "var(--primary-color)"
+                          : "var(--red)",
+                    }}
+                  >
+                    {ticket.state === 1 ? "Đã huỷ" : "Hoạt động"}
+                  </span>{" "}
+                </Typography>
 
                 <Divider sx={{ mt: 2, mb: 2 }} />
 
@@ -96,6 +180,41 @@ function MyTicket() {
                   Ngày mua vé:{" "}
                   {new Date(ticket.purchaseTime).toLocaleString("vi-VN")}
                 </Typography>
+
+                {/* Icon button to trigger menu */}
+                <IconButton
+                  sx={{ position: "absolute", top: 8, right: 8 }}
+                  onClick={(event) => handleMenuOpen(event, ticket._id)}
+                >
+                  <MoreVertIcon />
+                </IconButton>
+
+                {/* Menu for actions */}
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl) && selectedTicketId === ticket._id}
+                  onClose={handleMenuClose}
+                >
+                  <MenuItem
+                    sx={{ px: 2, py: 1 }}
+                    onClick={() => {
+                      navigate(`/ticket-detail/${ticket.trip._id}`);
+                      // Navigate to ticket details page
+                      // For now, log it to the console
+
+                      handleMenuClose();
+                    }}
+                  >
+                    <VisibilityIcon sx={{ mr: 1 }} /> Xem chi tiết
+                  </MenuItem>
+                  <MenuItem
+                    sx={{ px: 2, py: 1, color: "var(--red)" }}
+                    onClick={handleCancelTicket}
+                  >
+                    <DeleteIcon sx={{ mr: 1 }} />
+                    Hủy vé
+                  </MenuItem>
+                </Menu>
               </Box>
             </Grid>
           ))}

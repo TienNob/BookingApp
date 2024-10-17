@@ -16,6 +16,14 @@ const userSchema = new mongoose.Schema(
     avatar: { type: String }, // Path to the avatar image file
     coverPhoto: { type: String }, // Path to the cover photo file
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Followers list
+    totalCost: {
+      type: Number,
+      default: 0,
+    },
+    totalIncome: {
+      type: Number,
+      default: 0,
+    },
     role: { type: String, enum: ["admin", "user"], default: "user" }, // New role field
   },
   {

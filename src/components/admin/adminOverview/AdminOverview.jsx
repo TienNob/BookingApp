@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Line, Pie } from "react-chartjs-2";
+import { Line, Pie, Bar, Doughnut } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
@@ -14,13 +15,18 @@ import {
 import {
   Box,
   Typography,
-  Button,
+  Divider,
   MenuItem,
   Select,
   FormControl,
-  InputLabel,
   Paper,
   Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
 } from "@mui/material";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -32,10 +38,12 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   PointElement,
+  BarElement,
   LineElement,
   Title,
   Tooltip,
   Legend,
+
   ArcElement
 );
 
@@ -48,15 +56,37 @@ function AdminOverview() {
   });
   const [tripCount, setTripCount] = useState(0);
   const [ticketCount, setTicketCount] = useState(0);
+  const [transactions, setTransactions] = useState([]);
   const [lastWeekTripCount, setLastWeekTripCount] = useState(0);
   const [lastWeekTicketCount, setLastWeekTicketCount] = useState(0);
   const [lastWeekUserCount, setLastWeekUserCount] = useState(0);
+  const [topUsers, setTopUsers] = useState([]);
   const [filteredData, setFilteredData] = useState({
     labels: [],
     datasets: [],
   });
-  const [timeRange, setTimeRange] = useState("month");
+  const [ticketStateCounts, setTicketStateCounts] = useState({
+    normal: [],
+    canceled: [],
+    labels: [],
+  });
 
+  const [timeRange, setTimeRange] = useState("month");
+  const [ticketTimeRange, setTicketTimeRange] = useState("month"); // Add time range state for tickets
+  useEffect(() => {
+    const FetchTransactionData = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8080/api/transactions"
+        );
+        setTransactions(response.data.data);
+      } catch (error) {
+        console.error("Error fetching trip data:", error);
+      }
+    };
+
+    FetchTransactionData();
+  }, []);
   useEffect(() => {
     const fetchTripData = async () => {
       try {
@@ -86,21 +116,85 @@ function AdminOverview() {
         const tickets = response.data;
 
         setTicketCount(tickets.length);
-
+        processTicketData(tickets, ticketTimeRange);
         // Tính số lượng vé bán trong 7 ngày trước
         const lastWeekTickets = tickets.filter((ticket) =>
           dayjs(ticket.createdAt).isAfter(dayjs().subtract(7, "day"))
         );
 
         setLastWeekTicketCount(lastWeekTickets.length);
-        console.log(lastWeekTickets);
       } catch (error) {
         console.error("Error fetching ticket data:", error);
       }
     };
 
     fetchTicketData();
-  }, []);
+  }, [ticketTimeRange]);
+
+  const processTicketData = (tickets, range) => {
+    const ticketCountByState = tickets.reduce((acc, ticket) => {
+      const createdAt = dayjs(ticket.createdAt);
+      let key;
+
+      if (range === "month") {
+        key = `${createdAt.year()}-${createdAt.month() + 1}`; // Aggregate by month
+      } else {
+        key = createdAt.format("YYYY-MM-DD"); // Aggregate by day
+      }
+
+      if (!acc[key]) {
+        acc[key] = { normal: 0, canceled: 0 };
+      }
+
+      if (ticket.state === 0) {
+        acc[key].normal++;
+      } else {
+        acc[key].canceled++;
+      }
+
+      return acc;
+    }, {});
+
+    let labels = [];
+    let normalCounts = [];
+    let canceledCounts = [];
+
+    if (range === "month") {
+      // Generate labels for all months (Tháng 1 -> Tháng 12)
+      labels = Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`);
+      normalCounts = labels.map((_, i) => {
+        const key = `${dayjs().year()}-${i + 1}`;
+        return ticketCountByState[key]?.normal || 0;
+      });
+      canceledCounts = labels.map((_, i) => {
+        const key = `${dayjs().year()}-${i + 1}`;
+        return ticketCountByState[key]?.canceled || 0;
+      });
+    } else {
+      const daysInMonth = dayjs().daysInMonth();
+      // Generate labels for each day of the current month
+      labels = Array.from({ length: daysInMonth }, (_, i) => `Ngày ${i + 1}`);
+      normalCounts = labels.map((_, i) => {
+        const key = dayjs()
+          .date(i + 1)
+          .format("YYYY-MM-DD");
+        return ticketCountByState[key]?.normal || 0;
+      });
+      canceledCounts = labels.map((_, i) => {
+        const key = dayjs()
+          .date(i + 1)
+          .format("YYYY-MM-DD");
+        return ticketCountByState[key]?.canceled || 0;
+      });
+    }
+
+    // Update the state with new labels and data for the chart
+    setTicketStateCounts({
+      labels,
+      normal: normalCounts,
+      canceled: canceledCounts,
+    });
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -117,6 +211,13 @@ function AdminOverview() {
 
         processUserGrowth(users, timeRange);
         processGenderData(users);
+        const sortedUsers = users
+          .filter((user) => user.totalCost !== undefined) // Lọc các user có totalCost
+          .sort((a, b) => b.totalCost - a.totalCost) // Sắp xếp theo totalCost giảm dần
+          .slice(0, 5); // Lấy 5 user đầu tiên
+
+        setTopUsers(sortedUsers);
+        console.log(sortedUsers);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -181,8 +282,6 @@ function AdminOverview() {
     const genderCount = { male: 0, female: 0, other: 0 };
 
     users.forEach((user) => {
-      console.log(user);
-
       if (user.sex === "Nam") {
         genderCount.male++;
       } else if (user.sex === "Nữ") {
@@ -251,6 +350,33 @@ function AdminOverview() {
         data: [genderData.male, genderData.female, genderData.other],
         backgroundColor: ["#dcf5f9", "#ffd1ba", "#fff8e0"],
         hoverBackgroundColor: ["#dcf5f9", "#ffd1ba", "#fff8e0"],
+      },
+    ],
+  };
+  const barChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "bottom",
+      },
+      title: {
+        display: true,
+        text: "Số giao dịch",
+      },
+    },
+  };
+  const barChartData = {
+    labels: ticketStateCounts.labels,
+    datasets: [
+      {
+        label: "Giao dịch thành công",
+        data: ticketStateCounts.normal,
+        backgroundColor: "rgba(75, 192, 192, 0.5)",
+      },
+      {
+        label: "Giao dịch đã huỷ",
+        data: ticketStateCounts.canceled,
+        backgroundColor: "rgba(255, 99, 132, 0.5)",
       },
     ],
   };
@@ -442,9 +568,166 @@ function AdminOverview() {
             <Typography variant="h6" sx={{ color: "var(--text-color)" }}>
               Giới tính người dùng
             </Typography>
+
             <Box mt={3}>
               <Pie data={pieData} options={pieChartOptions} />
             </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+      <Grid container spacing={3} sx={{ mt: 1 }}>
+        <Grid item xs={12} sm={8}>
+          <Paper elevation={3} sx={{ p: 3, height: "100%", borderRadius: 5 }}>
+            <Box display="flex" alignItems="center">
+              <Typography variant="h6" sx={{ color: "var(--text-color)" }}>
+                Số lượng giao dịch
+              </Typography>
+              <FormControl size="small" sx={{ ml: "auto" }}>
+                <Select
+                  value={ticketTimeRange}
+                  onChange={(e) => setTicketTimeRange(e.target.value)}
+                  displayEmpty
+                >
+                  <MenuItem value="month">Theo Tháng</MenuItem>
+                  <MenuItem value="day">Theo Ngày</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Bar data={barChartData} options={barChartOptions} />
+          </Paper>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Paper sx={{ p: 3, height: "100%", borderRadius: 5 }}>
+            <Typography variant="h6" sx={{ color: "var(--text-color)", mb: 2 }}>
+              Tổng số liệu thanh toán
+            </Typography>
+            {transactions.map((transaction) => {
+              const data = {
+                labels: [
+                  "Tổng tiền đã huỷ giao dịch",
+                  "Tổng tiền giao dịch thành công",
+                ],
+                datasets: [
+                  {
+                    data: [transaction.totalRefunds, transaction.totalRevenue],
+                    backgroundColor: [
+                      "rgba(255, 99, 132, 0.5)",
+                      "rgba(75, 192, 192, 0.5)",
+                    ],
+                    hoverBackgroundColor: [
+                      "rgba(255, 99, 132, 0.5)",
+                      "rgba(75, 192, 192, 0.5)",
+                    ],
+                  },
+                ],
+              };
+
+              return (
+                <>
+                  <Box
+                    justifyContent="space-between"
+                    display="flex"
+                    alignItems="center"
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ color: "var(--text-color)" }}
+                    >
+                      Tổng tiền giao dịch:{" "}
+                    </Typography>
+                    <Typography variant="subtitle2">
+                      {transaction.totalRefunds + transaction.totalRevenue} VNĐ
+                    </Typography>
+                  </Box>
+                  <Doughnut key={transaction._id} data={data} />
+                  <Divider sx={{ my: 1 }} />
+                  <Box
+                    justifyContent="space-between"
+                    display="flex"
+                    alignItems="center"
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ color: "var(--text-color)" }}
+                    >
+                      Lợi nhuận (10%)
+                    </Typography>
+                    <Typography variant="subtitle2">
+                      {transaction.profit} VNĐ
+                    </Typography>
+                  </Box>
+                </>
+              );
+            })}
+          </Paper>
+        </Grid>
+      </Grid>
+      <Grid container spacing={3} mt={1}>
+        {/* Bảng xếp hạng top 5 người dùng */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3, borderRadius: 5 }}>
+            <Typography variant="h6" sx={{ color: "var(--text-color)" }}>
+              Top người dùng có tổng chi tiêu cao nhất
+            </Typography>
+
+            <TableContainer component={Paper} sx={{ mt: 2 }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Tên người dùng</TableCell>
+                    <TableCell align="">Số điện thoại</TableCell>
+                    <TableCell align="center">Tổng chi tiêu</TableCell>
+                    <TableCell align="center">Thứ hạng</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {topUsers.map((user, index) => (
+                    <TableRow key={user._id}>
+                      <TableCell>
+                        {user.firstName} {user.lastName}
+                      </TableCell>
+                      <TableCell align="">{user.phone}</TableCell>
+                      <TableCell align="center">
+                        {user.totalCost.toLocaleString()} VND
+                      </TableCell>
+                      <TableCell align="center">
+                        <span
+                          style={{
+                            backgroundColor:
+                              index === 0
+                                ? "#D9F1E8" // Vàng cho Top 1
+                                : index === 1
+                                ? "#EDE0FF" // Bạc cho Top 2
+                                : index === 2
+                                ? "#D6F4F9" // Đồng cho Top 3
+                                : index === 3
+                                ? "#FFF2DB" // Đồng cho Top 3
+                                : "#FFE3DF",
+                            padding: "4px 12px",
+                            borderRadius: "8px",
+                            fontWeight: "600",
+                            fontSize: "12px",
+                            color:
+                              index === 0
+                                ? "#007867"
+                                : index === 1
+                                ? "#511AB8"
+                                : index === 2
+                                ? "#0E6C9C"
+                                : index === 3
+                                ? "#B76E00"
+                                : "#B71D18",
+                          }}
+                        >
+                          Top {index + 1}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Paper>
         </Grid>
       </Grid>

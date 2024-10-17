@@ -130,7 +130,8 @@ function AdminUsers() {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [viewDetail, setViewDetail] = useState(null);
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
 
@@ -169,7 +170,7 @@ function AdminUsers() {
 
   const handleCloseDetailsDialog = () => {
     setOpenDetailsDialog(false);
-    setSelectedUser(null);
+    setViewDetail(null);
   };
 
   const handleEdit = (user) => {
@@ -178,7 +179,7 @@ function AdminUsers() {
   };
 
   const handleViewDetails = (user) => {
-    setSelectedUser(user);
+    setViewDetail(user);
     setOpenDetailsDialog(true); // Open details dialog
   };
 
@@ -190,15 +191,40 @@ function AdminUsers() {
       })
       .then(() => {
         setRows(rows.filter((row) => row._id !== user._id));
-        enqueueSnackbar("User deleted successfully", { variant: "success" });
+        enqueueSnackbar("Xoá người dùng thành công", { variant: "success" });
       })
       .catch((error) => {
-        console.error("Error deleting user", error);
-        enqueueSnackbar("Error deleting user", { variant: "error" });
+        enqueueSnackbar("Đã gặp lỗi khi xoá người dùng", { variant: "error" });
       })
       .finally(() => {
         setLoading(false);
       });
+  };
+  const handleBulkDelete = async () => {
+    if (selectedUsers.length === 0) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const deleteRequests = selectedUsers.map((userId) =>
+        axios.delete(`http://localhost:8080/api/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      );
+
+      await Promise.all(deleteRequests); // Wait for all delete requests to complete
+
+      setRows(rows.filter((row) => !selectedUsers.includes(row._id)));
+      setSelectedUsers([]);
+      enqueueSnackbar("Xoá người dùng đã chọn thành công", {
+        variant: "success",
+      });
+    } catch (error) {
+      enqueueSnackbar("Đã gặp lỗi khi xoá người dùng", { variant: "error" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -214,6 +240,27 @@ function AdminUsers() {
         <Typography variant="h5" sx={{ fontWeight: "bold" }}>
           Danh sách người dùng
         </Typography>
+        {selectedUsers.length > 0 ? (
+          <Button
+            sx={{
+              py: 1,
+              px: 2,
+              borderRadius: "8px",
+              backgroundColor: "var(--red)",
+              "&:hover": {
+                backgroundColor: "var(--dark-red)",
+              },
+              mr: 2,
+            }}
+            variant="contained"
+            disabled={selectedUsers.length === 0 || loading}
+            onClick={handleBulkDelete}
+          >
+            <DeleteIcon sx={{ mr: 1 }} /> Xóa ({selectedUsers.length})
+          </Button>
+        ) : (
+          ""
+        )}
       </Box>
 
       <DataGrid
@@ -222,6 +269,10 @@ function AdminUsers() {
         getRowId={(row) => row._id}
         pageSizeOptions={[10, 25, 35, 50]}
         checkboxSelection
+        onRowSelectionModelChange={(newSelection) => {
+          setSelectedUsers(newSelection);
+        }}
+        rowSelectionModel={selectedUsers}
         initialState={{
           pagination: {
             paginationModel: {
@@ -235,60 +286,60 @@ function AdminUsers() {
       <Dialog open={openDetailsDialog} onClose={handleCloseDetailsDialog}>
         <DialogTitle mb={2}>Chi tiết người dùng</DialogTitle>
         <DialogContent>
-          {selectedUser && (
+          {viewDetail && (
             <Grid container spacing={3}>
               <Grid item xs={6}>
                 <Typography variant="body1">
-                  <strong>Họ:</strong> {selectedUser.firstName}
+                  <strong>Họ:</strong> {viewDetail.firstName}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="body1">
-                  <strong>Tên:</strong> {selectedUser.lastName}
+                  <strong>Tên:</strong> {viewDetail.lastName}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="body1">
-                  <strong>Số điện thoại:</strong> {selectedUser.phone}
+                  <strong>Số điện thoại:</strong> {viewDetail.phone}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="body1">
-                  <strong>Giới tính:</strong> {selectedUser.sex}
+                  <strong>Giới tính:</strong> {viewDetail.sex}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="body1">
                   <strong>Ngày sinh:</strong>{" "}
-                  {new Date(selectedUser.birthDay).toLocaleDateString("vi-VN")}
+                  {new Date(viewDetail.birthDay).toLocaleDateString("vi-VN")}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="body1">
-                  <strong>CCCD:</strong> {selectedUser.cccd}
+                  <strong>CCCD:</strong> {viewDetail.cccd}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="body1">
                   <strong>Số người theo dõi bạn:</strong>{" "}
-                  {selectedUser.followers.length}
+                  {viewDetail.followers.length}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="body1">
                   <strong>Số người bạn theo dỗi:</strong>{" "}
-                  {selectedUser.friends.length}
+                  {viewDetail.friends.length}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="body1">
                   <strong>Ngày tạo tài khoản:</strong>{" "}
-                  {new Date(selectedUser.createdAt).toLocaleDateString("vi-VN")}
+                  {new Date(viewDetail.createdAt).toLocaleDateString("vi-VN")}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="body1">
-                  <strong>Mã người dùng:</strong> {selectedUser._id}
+                  <strong>Mã người dùng:</strong> {viewDetail._id}
                 </Typography>
               </Grid>
             </Grid>

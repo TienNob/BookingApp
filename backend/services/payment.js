@@ -3,10 +3,12 @@ const crypto = require("crypto"); // Thay thế crypto-js bằng module crypto
 const express = require("express"); // npm install express
 const moment = require("moment"); // npm install moment
 const qs = require("qs");
-const Ticket = require("./models/ticket");
-const Trip = require("./models/trip");
-const { User } = require("./models/user");
-const Notification = require("./models/notification");
+const Ticket = require("../models/ticket");
+const Trip = require("../models/trip");
+const { User } = require("../models/user");
+const Notification = require("../models/notification");
+const TransactionStats = require("../models/transaction");
+
 const router = express.Router();
 const config = {
   app_id: "2553",
@@ -26,6 +28,7 @@ router.post("/", async (req, res) => {
       userId,
       actorId,
       seatsPurchased,
+      departureTime,
     } = req.body;
     console.log(req.body);
     const embed_data = {
@@ -35,6 +38,7 @@ router.post("/", async (req, res) => {
       userId: userId,
       actorId: actorId,
       seatsPurchased: seatsPurchased,
+      departureTime: departureTime,
     };
 
     const items = [];
@@ -123,7 +127,14 @@ router.post("/callback", async (req, res) => {
 
       // Lấy embed_data từ ZaloPay để lấy tripId, userId, seatsPurchased
       const embedData = JSON.parse(dataJson.embed_data);
-      const { tripId, userId, actorId, seatsPurchased, location } = embedData;
+      const {
+        tripId,
+        userId,
+        actorId,
+        seatsPurchased,
+        location,
+        departureTime,
+      } = embedData;
       const amountPaid = dataJson.amount;
 
       // Truy vấn thông tin người dùng dựa trên userId
@@ -134,6 +145,8 @@ router.post("/callback", async (req, res) => {
 
       const firstName = user.firstName;
       const lastName = user.lastName;
+      user.totalCost += amountPaid;
+      await user.save();
       // Update trip seat availability
       const trip = await Trip.findById(tripId);
       if (!trip || trip.seatsAvailable < seatsPurchased) {
@@ -151,11 +164,26 @@ router.post("/callback", async (req, res) => {
         location: location,
         user: userId,
         actor: actorId,
+        departureTime: departureTime,
         seatsPurchased,
         amountPaid,
         paymentStatus: "Paid", // Đánh dấu đã thanh toán
+        paymentTransactionId: dataJson.zp_trans_id,
       });
       await newTicket.save();
+
+      // Find or create the transaction statistics
+      let stats = await TransactionStats.findOne();
+      if (!stats) {
+        stats = new TransactionStats();
+      }
+
+      // Update stats
+      stats.totalRevenue += amountPaid;
+      stats.profit = (stats.totalRevenue * 10) / 100;
+
+      // Save updated stats
+      await stats.save();
 
       const newNotification = new Notification({
         actorId: actorId,

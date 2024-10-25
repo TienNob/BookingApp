@@ -14,6 +14,9 @@ const notificationSchema = new mongoose.Schema({
     type: Boolean,
     default: false, // Default to unread when a notification is created
   },
+  link: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -14,8 +14,10 @@ import {
   FormControlLabel,
   Slider,
   Divider,
+  Select,
   Autocomplete,
   Pagination,
+  MenuItem,
 } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import EastOutlinedIcon from "@mui/icons-material/EastOutlined";
@@ -37,6 +39,8 @@ const Ticket = () => {
   const [seatRangeFilters, setSeatRangeFilters] = useState([]);
   const [timeRange, setTimeRange] = useState([0, 24]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedStatus, setSelectedStatus] = useState("hoat_dong");
+
   const itemsPerPage = 10;
   const navigate = useNavigate();
   useEffect(() => {
@@ -44,7 +48,14 @@ const Ticket = () => {
       try {
         const response = await axios.get("http://localhost:8080/api/trips");
         const tripsData = response.data;
+        const activeTrips = tripsData.filter((trip) => trip.state === 0);
 
+        // Sắp xếp dữ liệu theo ngày khởi hành
+        const activeTrip = activeTrips.sort((a, b) => {
+          const dateA = new Date(a.departureTime);
+          const dateB = new Date(b.departureTime);
+          return dateA - dateB; // Tăng dần
+        });
         // Sắp xếp dữ liệu theo ngày khởi hành
         const sortedTrips = tripsData.sort((a, b) => {
           const dateA = new Date(a.departureTime);
@@ -53,7 +64,7 @@ const Ticket = () => {
         });
 
         setTrips(sortedTrips);
-        setFilteredTrips(sortedTrips);
+        setFilteredTrips(activeTrip);
         setOriginalTrips(sortedTrips);
       } catch (error) {
         console.error("Error fetching trips:", error);
@@ -80,7 +91,7 @@ const Ticket = () => {
 
   useEffect(() => {
     filterTrips();
-  }, [seatRangeFilters, timeRange]);
+  }, [seatRangeFilters, timeRange, selectedStatus]);
 
   const filterTrips = () => {
     const filtered = trips.filter((trip) => {
@@ -96,8 +107,18 @@ const Ticket = () => {
       const matchTime =
         new Date(trip.departureTime).getHours() >= timeRange[0] &&
         new Date(trip.departureTime).getHours() <= timeRange[1];
+      const matchStatus =
+        selectedStatus === "hoat_dong"
+          ? trip.state === 0
+          : selectedStatus === "ngung_hoat_dong"
+          ? trip.state === 1
+          : selectedStatus === "dang_khoi_hanh"
+          ? trip.state > 1 && trip.state < 7
+          : selectedStatus === "hoan_thanh"
+          ? trip.state === 7
+          : true;
 
-      return matchSeats && matchTime;
+      return matchSeats && matchTime && matchStatus;
     });
     setFilteredTrips(filtered);
   };
@@ -111,6 +132,11 @@ const Ticket = () => {
     );
   };
 
+  // Add a handler for the status filter
+  const handleStatusChange = (event) => {
+    setSelectedStatus(event.target.value);
+    filterTrips(); // Update the trips displayed
+  };
   const handleTimeRangeChange = (event, newValue) => {
     setTimeRange(newValue);
   };
@@ -274,6 +300,23 @@ const Ticket = () => {
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Typography variant="body1" sx={{ mb: 1 }}>
+              Trạng thái chuyến đi
+            </Typography>
+            <Select
+              value={selectedStatus}
+              onChange={handleStatusChange}
+              displayEmpty
+              fullWidth
+            >
+              <MenuItem value="">Tất cả</MenuItem>
+              <MenuItem value="hoat_dong">Hoạt động</MenuItem>
+              <MenuItem value="ngung_hoat_dong">Ngưng hoạt động</MenuItem>
+              <MenuItem value="dang_khoi_hanh">Đang khởi hành</MenuItem>
+              <MenuItem value="hoan_thanh">Đã hoàn thành</MenuItem>
+            </Select>
+            <Divider sx={{ mb: 2, mt: 2 }} />
+
+            <Typography variant="body1" sx={{ mb: 1 }}>
               Loại xe (Số ghế)
             </Typography>
             <FormGroup>
@@ -321,6 +364,7 @@ const Ticket = () => {
               ]}
             />
           </Grid>
+
           <Grid item xs={12} md={9}>
             <Grid container spacing={2}>
               {paginatedTrips.length > 0 ? (
@@ -415,9 +459,9 @@ const Ticket = () => {
                               variant="body2"
                               sx={{
                                 color:
-                                  trip.state === 1
-                                    ? "var(--red)"
-                                    : "textSecondary",
+                                  trip.state === 0
+                                    ? "textSecondary"
+                                    : "var(--red)",
                               }}
                             >
                               Số ghế trống: {trip.seatsAvailable}
@@ -428,14 +472,14 @@ const Ticket = () => {
                               sx={{
                                 mt: 1,
                                 backgroundColor:
-                                  trip.state === 1
-                                    ? "var(--red)"
-                                    : "var(--primary-color)",
+                                  trip.state === 0
+                                    ? "var(--primary-color)"
+                                    : "var(--red)",
                                 "&:hover": {
                                   backgroundColor:
-                                    trip.state === 1
-                                      ? "var(--dark-red)"
-                                      : "var(--hover-color)",
+                                    trip.state === 0
+                                      ? "var(--hover-color)"
+                                      : "var(--dark-red)",
                                 },
                               }}
                             >

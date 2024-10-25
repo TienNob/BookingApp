@@ -9,10 +9,13 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 
@@ -20,6 +23,8 @@ function MyTicket() {
   const [tickets, setTickets] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null); // Menu anchor element
   const [selectedTicketId, setSelectedTicketId] = useState(null); // Selected ticket for menu actions
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState(""); // "" means no filter
   const userId = localStorage.getItem("userId");
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
@@ -43,6 +48,22 @@ function MyTicket() {
 
     fetchTickets();
   }, [userId]);
+  const filteredTickets = tickets.filter((ticket) => {
+    // Tìm kiếm dựa trên mã vé hoặc tuyến đường
+    const matchSearchTerm =
+      ticket._id.includes(searchTerm) ||
+      ticket.location
+        .toLocaleLowerCase()
+        .includes(searchTerm.toLocaleLowerCase());
+
+    // Lọc theo trạng thái vé
+    const matchStatusFilter =
+      statusFilter === "" ||
+      (statusFilter === "active" && ticket.state === 0) ||
+      (statusFilter === "cancelled" && ticket.state === 1);
+
+    return matchSearchTerm && matchStatusFilter;
+  });
 
   // Handle menu open
   const handleMenuOpen = (event, ticketId) => {
@@ -113,7 +134,40 @@ function MyTicket() {
     <Box sx={{ marginTop: "100px" }}>
       <Container>
         <Grid container spacing={2}>
-          {tickets.map((ticket) => (
+          <Grid item xs={10} sm={10} mb={2}>
+            <TextField
+              label="Tìm kiếm"
+              variant="outlined"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{ width: "100%" }}
+            />
+          </Grid>
+          <Grid item xs={2} sm={2}>
+            <Autocomplete
+              options={[
+                { label: "Tất cả", value: "" },
+                { label: "Hoạt động", value: "active" },
+                { label: "Đã hủy", value: "cancelled" },
+              ]}
+              getOptionLabel={(option) => option.label}
+              value={{ label: "Tất cả", value: "" }}
+              onChange={(event, newValue) => {
+                setStatusFilter(newValue ? newValue.value : ""); // Set status filter
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Lọc theo trạng thái"
+                  variant="outlined"
+                  sx={{ width: "100%" }}
+                />
+              )}
+            />
+          </Grid>
+        </Grid>
+        <Grid container spacing={2}>
+          {filteredTickets.map((ticket) => (
             <Grid item xs={12} sm={6} md={6} lg={4} key={ticket._id}>
               <Box
                 sx={{
@@ -161,7 +215,7 @@ function MyTicket() {
                   </span>{" "}
                 </Typography>
                 <Typography variant="body1" sx={{ mt: 1 }}>
-                  Số tiền đã thanh toán:{" "}
+                  Trạng thái:{" "}
                   <span
                     style={{
                       color:
@@ -199,13 +253,21 @@ function MyTicket() {
                     sx={{ px: 2, py: 1 }}
                     onClick={() => {
                       navigate(`/ticket-detail/${ticket.trip._id}`);
-                      // Navigate to ticket details page
-                      // For now, log it to the console
 
                       handleMenuClose();
                     }}
                   >
                     <VisibilityIcon sx={{ mr: 1 }} /> Xem chi tiết
+                  </MenuItem>
+                  <MenuItem
+                    sx={{ px: 2, py: 1 }}
+                    disabled={ticket.trip.state < 2}
+                    onClick={() => {
+                      navigate(`/trip-table/${ticket.trip._id}`);
+                      handleMenuClose();
+                    }}
+                  >
+                    <DirectionsRunIcon sx={{ mr: 1 }} /> Xem tiến trình
                   </MenuItem>
                   <MenuItem
                     sx={{ px: 2, py: 1, color: "var(--red)" }}

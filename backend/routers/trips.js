@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Trip = require("../models/trip");
 const Ticket = require("../models/ticket");
+const { User } = require("../models/user");
 const Notification = require("../models/notification");
 const authenticateToken = require("../middleware/authenticateToken");
 
@@ -32,7 +33,10 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const trip = await Trip.findById(req.params.id).populate("user"); // Lấy thông tin chi tiết của user
+    const trip = await Trip.findById(req.params.id).populate("user").populate({
+      path: "reviews.user",
+      select: "firstName lastName avatar",
+    });
 
     if (!trip) {
       return res.status(404).json({ message: "Trip not found" });
@@ -123,6 +127,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
         const notification = new Notification({
           actorId: user._id, // Notify the user who purchased the ticket
           message: message,
+          link: trip._id,
         });
 
         await notification.save();
@@ -154,35 +159,42 @@ router.delete("/:id", authenticateToken, async (req, res) => {
     const tickets = await Ticket.find({ trip: tripId }).populate("user");
 
     // Notify each user who has purchased a ticket for this trip
-    await Promise.all(
-      tickets.map(async (ticket) => {
-        const user = ticket.user;
-        const message = `Chuyến đi ${trip.locations} vào ${new Date(
-          trip.departureTime
-        ).toLocaleString("vi-VN")} đã bị hủy.`;
+    for (const ticket of tickets) {
+      const user = ticket.user;
+      const message = `Chuyến đi ${trip.locations} vào ${new Date(
+        trip.departureTime
+      ).toLocaleString("vi-VN")} đã bị hủy.`;
 
-        const notification = new Notification({
-          actorId: user._id, // Notify the user who purchased the ticket
-          message: message,
-        });
+      // Create and save the notification
+      const notification = new Notification({
+        actorId: user._id, // Notify the user who purchased the ticket
+        message: message,
+        link: trip._id,
+      });
+      await notification.save();
 
-        await notification.save();
+      // Update the ticket state to '1' (canceled)
+      ticket.state = 1;
+      await ticket.save();
 
-        // Update the ticket state to '1' (canceled)
-        ticket.state = 1;
-        await ticket.save();
-      })
-    );
+      // Update the user's total cost
+      user.totalCost -= ticket.amountPaid;
+      await user.save(); // Sequential save to avoid ParallelSaveError
+
+      // Update the actor's total income (the person who posted the trip)
+      const actor = await User.findById(trip.user);
+      if (actor) {
+        actor.totalIncome -= ticket.amountPaid;
+        await actor.save(); // Sequential save
+      }
+    }
 
     // Finally, delete the trip
     await Trip.findByIdAndDelete(tripId);
 
-    res
-      .status(200)
-      .json({
-        message:
-          "Trip deleted, tickets marked as canceled, notifications sent.",
-      });
+    res.status(200).json({
+      message: "Trip deleted, tickets marked as canceled, notifications sent.",
+    });
   } catch (error) {
     console.error("Error deleting trip:", error);
     res.status(500).json({ message: "Error deleting trip", error });
@@ -214,6 +226,7 @@ router.get("/my-trips/:userId", async (req, res) => {
             amountPaid: ticket.amountPaid,
             location: ticket.location,
             purchaseTime: ticket.purchaseTime,
+            state: ticket.state,
             user: `${ticket.user.firstName} ${ticket.user.lastName}`,
           })),
         };
@@ -226,4 +239,95 @@ router.get("/my-trips/:userId", async (req, res) => {
     res.status(500).json({ message: "Failed to load trips and tickets" });
   }
 });
-module.exports = router;
+// Cập nhật trạng thái của chuyến đi
+router.patch("/:id/state", authenticateToken, async (req, res) => {
+  const { state } = req.body; // Lấy trạng thái mới từ request body
+
+  try {
+    const trip = await Trip.findById(req.params.id);
+
+    if (!trip) {
+      return res.status(404).json({ message: "Trip not found" });
+    }
+
+    // Check if the state value is valid
+    if (state < 2 || state > 7) {
+      return res.status(400).json({ message: "Invalid state value" });
+    }
+
+    // Update the trip state
+    trip.state = state;
+
+    await trip.save();
+
+    res.status(200).json({ message: "Trip state updated successfully", trip });
+  } catch (error) {
+    console.error("Error updating trip state:", error);
+    res.status(500).json({ message: "Error updating trip state", error });
+  }
+});
+
+// Add a review to a trip
+
+router.post("/:id/reviews", authenticateToken, async (req, res) => {
+  const { rating, comment } = req.body;
+
+  try {
+    // Find the trip and its owner
+    const trip = await Trip.findById(req.params.id).populate("user");
+
+    if (!trip) {
+      return res.status(404).json({ message: "Trip not found" });
+    }
+
+    // Find the current user's details
+    const currentUser = await User.findById(req.user._id);
+    if (!currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Add the new review
+    const review = {
+      user: req.user._id,
+      rating,
+      comment,
+    };
+    trip.reviews.push(review);
+
+    await trip.save();
+
+    // Create a notification for the trip owner
+    const notification = new Notification({
+      actorId: trip.user._id,
+      message: `${currentUser.firstName} ${currentUser.lastName} đã để lại một đánh giá mới cho chuyến đi của bạn.`,
+      link: trip._id,
+    });
+
+    await notification.save();
+
+    // Send back the review data in the response
+    res.status(201).json({ message: "Review added successfully", review });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to add review", error });
+  }
+});
+
+// Get all reviews for a trip
+// router.get("/:id/reviews", async (req, res) => {
+//   try {
+//     const trip = await Trip.findById(req.params.id).populate(
+//       "reviews.user",
+//       "firstName lastName"
+//     );
+
+//     if (!trip) {
+//       return res.status(404).json({ message: "Trip not found" });
+//     }
+
+//     res.status(200).json(trip.reviews);
+//   } catch (error) {
+//     res.status(500).json({ message: "Failed to fetch reviews", error });
+//   }
+// });
+
+// module.exports = router;

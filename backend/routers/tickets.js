@@ -97,8 +97,12 @@ router.delete("/:ticketId", async (req, res) => {
     ticket.state = 1;
     await ticket.save();
     const user = await User.findById(ticket.user);
+    const actor = await User.findById(ticket.actor);
     user.totalCost -= refundAmount;
+    actor.totalIncome -= refundAmount;
     await user.save();
+    await actor.save();
+
     // Step 4: Create a notification for the trip owner
     const ownerMessage = `${ticket.user.firstName} ${
       ticket.user.lastName
@@ -109,6 +113,7 @@ router.delete("/:ticketId", async (req, res) => {
     const ownerNotification = new Notification({
       actorId: trip.user._id, // The owner of the trip (the person to be notified)
       message: ownerMessage,
+      link: trip._id,
     });
     await ownerNotification.save();
 
@@ -121,6 +126,7 @@ router.delete("/:ticketId", async (req, res) => {
     const userNotification = new Notification({
       actorId: ticket.user._id, // Notify the user who canceled the ticket
       message: userMessage,
+      link: trip._id,
     });
     await userNotification.save();
 

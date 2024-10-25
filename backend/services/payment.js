@@ -139,6 +139,7 @@ router.post("/callback", async (req, res) => {
 
       // Truy vấn thông tin người dùng dựa trên userId
       const user = await User.findById(userId); // Giả sử bạn đã có model User
+      const actor = await User.findById(actorId); // Giả sử bạn đã có model User
       if (!user) {
         throw new Error("User not found");
       }
@@ -146,7 +147,10 @@ router.post("/callback", async (req, res) => {
       const firstName = user.firstName;
       const lastName = user.lastName;
       user.totalCost += amountPaid;
+      actor.totalIncome += amountPaid;
+
       await user.save();
+      await actor.save();
       // Update trip seat availability
       const trip = await Trip.findById(tripId);
       if (!trip || trip.seatsAvailable < seatsPurchased) {
@@ -188,6 +192,7 @@ router.post("/callback", async (req, res) => {
       const newNotification = new Notification({
         actorId: actorId,
         message: `${firstName} ${lastName} đã mua vé ${location}. Số ghế: ${seatsPurchased}, Tổng tiền: ${amountPaid} VND`,
+        link: tripId,
       });
       await newNotification.save();
 

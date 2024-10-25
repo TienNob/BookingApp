@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import {
   Dialog,
   DialogTitle,
   List,
   ListItem,
   ListItemText,
-  Button,
   CircularProgress,
 } from "@mui/material";
 import axios from "axios";
-
 const NotificationDialog = ({ actorId, open, onClose }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
   // Fetch notifications from API
   useEffect(() => {
     if (open) {
@@ -38,7 +38,10 @@ const NotificationDialog = ({ actorId, open, onClose }) => {
         });
     }
   }, [open, actorId]);
-
+  const handleNotificationClick = (tripId) => {
+    onClose(); // Close the dialog
+    navigate(`/ticket-detail/${tripId}`); // Navigate to the trip page
+  };
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Thông báo</DialogTitle>
@@ -59,7 +62,9 @@ const NotificationDialog = ({ actorId, open, onClose }) => {
           ) : (
             notifications.map((notification, index) => (
               <ListItem
+                onClick={() => handleNotificationClick(notification.link)}
                 sx={{
+                  cursor: "pointer",
                   backgroundColor: notification.isRead
                     ? "transparent"
                     : "var(--bg-primary)",

@@ -27,6 +27,7 @@ import {
   TableHead,
   TableRow,
   TableContainer,
+  InputLabel,
 } from "@mui/material";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -61,6 +62,7 @@ function AdminOverview() {
   const [lastWeekTicketCount, setLastWeekTicketCount] = useState(0);
   const [lastWeekUserCount, setLastWeekUserCount] = useState(0);
   const [topUsers, setTopUsers] = useState([]);
+  const [viewMode, setViewMode] = useState("totalCost"); // default to totalCost
   const [filteredData, setFilteredData] = useState({
     labels: [],
     datasets: [],
@@ -217,7 +219,6 @@ function AdminOverview() {
           .slice(0, 5); // Lấy 5 user đầu tiên
 
         setTopUsers(sortedUsers);
-        console.log(sortedUsers);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -380,7 +381,9 @@ function AdminOverview() {
       },
     ],
   };
-
+  const handleViewModeChange = (event) => {
+    setViewMode(event.target.value);
+  };
   return (
     <Box>
       <Typography mb={2} variant="h4" gutterBottom>
@@ -605,7 +608,7 @@ function AdminOverview() {
             {transactions.map((transaction) => {
               const data = {
                 labels: [
-                  "Tổng tiền đã huỷ giao dịch",
+                  "Tổng tiền giao dịch đã huỷ",
                   "Tổng tiền giao dịch thành công",
                 ],
                 datasets: [
@@ -667,9 +670,25 @@ function AdminOverview() {
         {/* Bảng xếp hạng top 5 người dùng */}
         <Grid item xs={12}>
           <Paper sx={{ p: 3, borderRadius: 5 }}>
-            <Typography variant="h6" sx={{ color: "var(--text-color)" }}>
-              Top người dùng có tổng chi tiêu cao nhất
-            </Typography>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography variant="h6" sx={{ color: "var(--text-color)" }}>
+                Top người dùng có{" "}
+                {viewMode === "totalCost" ? "tổng chi tiêu" : "tổng thu nhập"}{" "}
+                cao nhất
+              </Typography>
+
+              {/* Dropdown to switch between totalCost and totalIncome */}
+              <FormControl sx={{ mt: 2, minWidth: 120 }}>
+                <Select value={viewMode} onChange={handleViewModeChange}>
+                  <MenuItem value="totalCost">Tổng chi tiêu</MenuItem>
+                  <MenuItem value="totalIncome">Tổng thu nhập</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
 
             <TableContainer component={Paper} sx={{ mt: 2 }}>
               <Table>
@@ -677,7 +696,11 @@ function AdminOverview() {
                   <TableRow>
                     <TableCell>Tên người dùng</TableCell>
                     <TableCell align="">Số điện thoại</TableCell>
-                    <TableCell align="center">Tổng chi tiêu</TableCell>
+                    <TableCell align="center">
+                      {viewMode === "totalCost"
+                        ? "Tổng chi tiêu"
+                        : "Tổng thu nhập"}
+                    </TableCell>
                     <TableCell align="center">Thứ hạng</TableCell>
                   </TableRow>
                 </TableHead>
@@ -689,7 +712,9 @@ function AdminOverview() {
                       </TableCell>
                       <TableCell align="">{user.phone}</TableCell>
                       <TableCell align="center">
-                        {user.totalCost.toLocaleString()} VND
+                        {viewMode === "totalCost"
+                          ? `${user.totalCost.toLocaleString()} VND`
+                          : `${user.totalIncome.toLocaleString()} VND`}
                       </TableCell>
                       <TableCell align="center">
                         <span

@@ -22,6 +22,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
+import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Loadding from "../Loadding";
@@ -49,6 +50,7 @@ const TripTable = () => {
       .get(`http://localhost:8080/api/trips/my-trips/${userId}`)
       .then((response) => {
         setTrips(response.data);
+
         setLoading(false);
       })
       .catch((err) => {
@@ -57,8 +59,41 @@ const TripTable = () => {
       });
   }, [userId]);
 
+  const tripSelect = trips.filter((t) => t._id === selectedTrip);
+
   const handleViewDetail = (tripId) => {
     navigate(`/ticket-detail/${tripId}`);
+  };
+  const handleStart = (tripId) => {
+    setLoading(true);
+
+    if (tripSelect[0].state > 2) {
+      navigate(`/trip-table/${tripId}`);
+      return;
+    }
+    axios
+      .patch(
+        `http://localhost:8080/api/trips/${tripId}/state`,
+        { state: 2 },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then(() => {
+        enqueueSnackbar("Cập nhật trạng thái thành công!", {
+          variant: "success",
+        });
+      })
+      .catch((error) => {
+        console.error("Error updating state:", error);
+        enqueueSnackbar("Có lỗi xảy ra!", { variant: "error" }); // Use enqueueSnackbar
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+    navigate(`/trip-table/${tripId}`);
   };
   const handleEdit = (tripId) => {
     const tripToEdit = trips.find((trip) => trip._id === tripId); // Find the trip by tripId
@@ -126,7 +161,7 @@ const TripTable = () => {
   const filterOptions = [
     { label: "Tất cả", value: "all" },
     { label: "Hoạt động", value: "active" },
-    { label: "Ngưng hoạt động", value: "inactive" },
+    { label: "Ngưng bán", value: "inactive" },
   ];
 
   if (loading) {
@@ -138,7 +173,7 @@ const TripTable = () => {
   }
 
   return (
-    <Container sx={{ mt: "100px" }}>
+    <Container sx={{ mt: "100px", mb: 4 }}>
       <Box sx={{ mb: 2, display: "flex" }}>
         <TextField
           label="Tìm kiếm"
@@ -209,7 +244,13 @@ const TripTable = () => {
                     {new Date(trip.departureTime).toLocaleString()}
                   </TableCell>
                   <TableCell>
-                    {trip.state === 0 ? "Hoạt động" : "Ngưng hoạt động"}
+                    {trip.state === 0
+                      ? "Hoạt động"
+                      : trip.state === 1
+                      ? "Ngưng bán"
+                      : trip.state >= 2 && trip.state <= 6
+                      ? "Đang diễn ra"
+                      : "Đã hoàn thành"}
                   </TableCell>
                   <TableCell>
                     <IconButton
@@ -233,6 +274,17 @@ const TripTable = () => {
                         onClick={() => handleEdit(selectedTrip)}
                       >
                         <EditIcon sx={{ mr: 1 }} /> Chỉnh sửa
+                      </MenuItem>
+                      <MenuItem
+                        sx={{ px: 2, py: 1 }}
+                        onClick={() => handleStart(selectedTrip)}
+                      >
+                        <DirectionsRunIcon sx={{ mr: 1 }} />
+                        {tripSelect &&
+                        tripSelect.length > 0 &&
+                        tripSelect[0].state < 2
+                          ? "Bắt đầu chuyến đi"
+                          : "Xem tiến trình"}
                       </MenuItem>
                       <MenuItem
                         sx={{ color: "var(--red)", px: 2, py: 1 }}
@@ -272,6 +324,7 @@ const TripTable = () => {
                             </TableHead>
                             <TableBody>
                               {trip.tickets
+                                .filter((ticket) => ticket.state === 0)
                                 .slice()
                                 .reverse()
                                 .map((ticket, index) => (

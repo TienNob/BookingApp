@@ -18,6 +18,7 @@ import ForumProfile from "./components/forum/forumProfile/ForumProfile";
 import { Button } from "@mui/material";
 import ScrollTop from "./components/ScrollTop";
 import ChatBox from "./components/forum/forumLeft/ChatBox";
+import TripTable from "./components/ticket/TripTable";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
     location.pathname === "/my-trips" ||
     location.pathname === "/tickets" ||
     location.pathname.startsWith("/ticket-detail") ||
+    location.pathname.startsWith("/trip-table") ||
     location.pathname === "/chatbox" ||
     location.pathname.startsWith("/forum-profile");
 
@@ -75,6 +77,7 @@ function App() {
           <Route path="/my-trips" element={<MyTrip />} />
           <Route path="/chatbox" element={<ChatBox />} />
           <Route path="/ticket-detail/:id" element={<TicketDetail />} />
+          <Route path="/trip-table/:id" element={<TripTable />} />
         </Routes>
         {!hideFooter && <Footer />} <ScrollTop />
       </div>

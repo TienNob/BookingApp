@@ -16,6 +16,7 @@ import {
   Avatar,
   CardMedia,
   Link,
+  Rating,
 } from "@mui/material";
 import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
 import PersonRemoveOutlinedIcon from "@mui/icons-material/PersonRemoveOutlined";
@@ -40,16 +41,22 @@ const TicketDetail = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
   const [initPrice, setInitPrice] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState("");
+  const [visibleReviews, setVisibleReviews] = useState(3); // Start by showing 3 reviews
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
+  const userLocal = JSON.parse(localStorage.getItem("user"));
   const totalAmount = Math.round(
     (initPrice[activeButtonId] * seatOrder) / 1000
   );
   const formattedAmount = formatNumber(totalAmount);
 
-  console.log(selectedRoute);
   const { enqueueSnackbar } = useSnackbar(); // Initialize snackbar
-
+  const loadMoreReviews = () => {
+    setVisibleReviews((prev) => prev + 3); // Load 3 more reviews each time
+  };
   const navigate = useNavigate();
   useEffect(() => {
     const fetchTripDetail = async () => {
@@ -58,6 +65,7 @@ const TicketDetail = () => {
           `http://localhost:8080/api/trips/${id}`
         );
         setTrip(response.data);
+        setReviews(response.data.reviews);
         setInitPrice(response.data.prices);
         setUser(response.data.user);
         const imagesResponse = await axios.get(
@@ -169,6 +177,50 @@ const TicketDetail = () => {
     setOpenModal(false);
     setSelectedImage("");
   };
+
+  const handleRatingChange = (event, newRating) => {
+    setRating(newRating); // Update rating state
+  };
+  const handleReviewChange = (event) => {
+    setReview(event.target.value); // Update review text state
+  };
+
+  const handleRatingSubmit = async (e) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8080/api/trips/${id}/reviews`,
+        {
+          rating: rating,
+          comment: review,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const newReview = {
+        ...response.data.review,
+        user: {
+          _id: userId,
+          avatar: userLocal.avatar,
+          firstName: userLocal.firstName,
+          lastName: userLocal.lastName,
+        },
+        createdAt: new Date(),
+      };
+      // Update the reviews state with the new review
+      setReviews((prevReviews) => [...prevReviews, newReview]);
+      setRating(0);
+      setReview("");
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      // Handle error (e.g., show an error message)
+    }
+  };
+  console.log(reviews[0]);
+
   const handleFollowToggle = async (user) => {
     const isFollowing = user.followers.some((follower) => follower === userId);
 
@@ -715,6 +767,119 @@ const TicketDetail = () => {
           </Card>
         </Grid>
       </Grid>
+
+      <Card sx={{ mt: 2 }}>
+        <CardContent>
+          <Box display="flex" flexDirection="column" mb={3}>
+            <Typography variant="h5">Đánh giá chuyến đi</Typography>
+            <Rating
+              name="trip-rating"
+              value={rating}
+              onChange={handleRatingChange} // Handle rating change
+              sx={{ mb: 2, mt: 1 }}
+            />
+            <TextField
+              label="Viết đánh giá của bạn"
+              multiline
+              rows={4}
+              value={review}
+              onChange={handleReviewChange} // Handle review text change
+              variant="outlined"
+              sx={{ mb: 2 }}
+              fullWidth
+            />
+            <Button
+              variant="contained"
+              onClick={handleRatingSubmit} // Submit the rating
+              sx={{
+                mb: 3,
+                borderRadius: 3,
+                backgroundColor: "var(--primary-color)",
+                "&:hover": {
+                  backgroundColor: "var(--hover-color)",
+                },
+              }}
+              disabled={rating === 0} // Disable button if no rating is selected
+            >
+              Gửi đánh giá
+            </Button>
+            {reviews
+              .slice()
+              .reverse()
+              .slice(0, visibleReviews)
+              .map((review, index) => (
+                <Box key={index} sx={{ mb: 3 }}>
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <Avatar
+                      sx={{
+                        mr: 2,
+                        width: "40px",
+                        height: "40px",
+                        cursor: "pointer",
+                        transition: "all linear 0.3s",
+                        "&:hover": { opacity: 0.7 },
+                      }}
+                      src={`http://localhost:8080${review.user.avatar}`}
+                      onClick={() => {
+                        navigate(`/forum-profile/${review.user._id}`);
+                      }}
+                    />
+                    <Box>
+                      <Typography
+                        sx={{
+                          "&:hover": {
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                          },
+                        }}
+                        variant="body1"
+                        mb="2px"
+                        gutterBottom
+                        onClick={() => {
+                          navigate(`/forum-profile/${review.user._id}`);
+                        }}
+                      >
+                        {review.user.firstName} {review.user.lastName}
+                      </Typography>
+
+                      <Rating
+                        sx={{ width: "10px" }}
+                        value={review.rating}
+                        size="small"
+                        readOnly
+                      />
+                    </Box>
+                  </Box>
+                  <Typography variant="body2" gutterBottom>
+                    {review.comment}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {new Date(review.createdAt).toLocaleString()}
+                  </Typography>
+                </Box>
+              ))}
+
+            {/* Show "See more" button if there are more reviews */}
+            {visibleReviews < reviews.length && (
+              <Typography
+                variant="body1"
+                onClick={loadMoreReviews}
+                sx={{
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  color: "var(--primary-color)",
+                  "&:hover": {
+                    color: "var(--hover-color)",
+                  },
+                }}
+              >
+                Xem thêm
+              </Typography>
+            )}
+          </Box>
+        </CardContent>
+      </Card>
       <ImagePreview
         open={openModal}
         imageUrl={selectedImage}

@@ -39,6 +39,18 @@ const tripSchema = new mongoose.Schema(
       type: Number,
       default: 0, // Mặc định là 0
     },
+    reviews: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        rating: { type: Number, min: 1, max: 5 }, // Rating from 1 to 5
+        comment: { type: String }, // User review
+        createdAt: { type: Date, default: Date.now }, // Timestamp of the review
+      },
+    ],
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt
@@ -46,11 +58,16 @@ const tripSchema = new mongoose.Schema(
 );
 tripSchema.pre("save", function (next) {
   const now = new Date();
-  if (this.departureTime < now) {
-    this.state = 1; // Mark as inactive if the departure time has passed
-  } else {
-    this.state = 0; // Mark as active if the departure time is still in the future
+
+  // Chỉ tự động thay đổi state nếu nó đang ở trạng thái 0
+  if (this.state === 0) {
+    if (this.departureTime < now) {
+      this.state = 1; // Mark as inactive if the departure time has passed
+    } else {
+      this.state = 0; // Mark as active if the departure time is still in the future
+    }
   }
+
   next();
 });
 

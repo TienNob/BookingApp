@@ -36,3 +36,6 @@
 .css-1u4zpwo-MuiSvgIcon-root-MuiStepIcon-root.Mui-completed {
   color: var(--secondary-color) !important;
 }
+button {
+  transition: all 0.3s ease !important;
+}

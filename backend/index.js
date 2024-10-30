@@ -9,6 +9,7 @@ const postRoutes = require("./routers/posts");
 const tripRoutes = require("./routers/trips");
 const ticketRoutes = require("./routers/tickets");
 const transactions = require("./routers/transactions");
+const driverRegistrations = require("./routers/driverRegistrations");
 const notificationRoutes = require("./routers/notification");
 const payment = require("./services/payment");
 const messageRoutes = require("./routers/messages");
@@ -32,7 +33,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/transactions", transactions);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/payment", payment);
-
+app.use("/api/driver-registration", driverRegistrations);
 app.use("/uploads", express.static("uploads"));
 
 const server = http.createServer(app);

@@ -250,5 +250,28 @@ router.get("/:id/followers", async (req, res) => {
     res.status(500).send({ message: "Internal Server Error" });
   }
 });
+router.patch("/:id", authenticateToken, async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    // Update the driver registration request
+    const request = await DriverRegistration.findById(req.params.id);
+    if (!request) return res.status(404).send({ message: "Request not found" });
+    request.status = status;
+
+    // If approved, update the user's role to driver
+    if (status === "approved") {
+      const user = await User.findById(request.userId);
+      if (!user) return res.status(404).send({ message: "User not found" });
+      user.role = "driver";
+      await user.save();
+    }
+
+    await request.save();
+    res.status(200).send({ message: "Request status updated successfully" });
+  } catch (error) {
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
 
 module.exports = router;

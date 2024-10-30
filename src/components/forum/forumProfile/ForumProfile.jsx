@@ -28,10 +28,13 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
 import PersonRemoveOutlinedIcon from "@mui/icons-material/PersonRemoveOutlined";
+import CarRentalOutlinedIcon from "@mui/icons-material/CarRentalOutlined";
+import Tooltip from "@mui/material/Tooltip";
 import coverImgDefault from "../../../assets/coverIMG.png";
 import ForumContent from "../forumMain/ForumContent";
-import ImagePreview from "../../ImagePreview";
 import FormEditProfile from "./FormEditProfile";
+import ImagePreview from "../../ImagePreview";
+
 const ForumProfile = () => {
   const { userId } = useParams();
   const [user, setUser] = useState(null);
@@ -62,10 +65,20 @@ const ForumProfile = () => {
         );
         setUser(userResponse.data);
 
-        const postsResponse = await axios.get(
-          `http://localhost:8080/api/posts/actor/${userId}`
-        );
-        setPosts(postsResponse.data);
+        try {
+          const postsResponse = await axios.get(
+            `http://localhost:8080/api/posts/actor/${userId}`
+          );
+          setPosts(postsResponse.data); // Gán dữ liệu nếu có bài viết
+        } catch (error) {
+          if (error.response && error.response.status === 404) {
+            console.log("No posts found for this user.");
+            setPosts([]);
+          } else {
+            throw error;
+          }
+        }
+
         const imagesResponse = await axios.get(
           `http://localhost:8080/api/posts/images/${userId}`
         );
@@ -75,10 +88,12 @@ const ForumProfile = () => {
           `http://localhost:8080/api/users/${userId}/friends`
         );
         setFriends(friendsResponse.data.friends);
+
         const followerResponse = await axios.get(
           `http://localhost:8080/api/users/${userId}/followers`
         );
         setFollowers(followerResponse.data.followers);
+
         const friendsUserResponse = await axios.get(
           `http://localhost:8080/api/users/${userIdLocal}/friends`
         );
@@ -432,8 +447,14 @@ const ForumProfile = () => {
             >
               <Box>
                 <Typography variant="h4">
-                  {user.firstName} {user.lastName}
+                  {user.firstName} {user.lastName}{" "}
+                  <Tooltip title="Tài khoản tài xế">
+                    <CarRentalOutlinedIcon
+                      sx={{ color: "var(--secondary-color)" }}
+                    />
+                  </Tooltip>
                 </Typography>
+
                 <Typography variant="body2" color="textSecondary">
                   {user.followers.length} Người theo dỗi
                 </Typography>

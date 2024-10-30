@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    role: { type: String, enum: ["admin", "user"], default: "user" }, // New role field
+    role: { type: String, enum: ["admin", "user", "driver"], default: "user" }, // New role field
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt

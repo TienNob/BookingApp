@@ -8,6 +8,8 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import ModeEditOutlineOutlinedIcon from "@mui/icons-material/ModeEditOutlineOutlined";
 import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
+import CarRentalOutlinedIcon from "@mui/icons-material/CarRentalOutlined";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
@@ -30,6 +32,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import imgLogo from "../../assets/ImgLogo.png";
 import UserSearchDialog from "../forum/forumLeft/UserSearchDialog";
 import NotificationDialog from "../forum/forumLeft/NotificationDialog";
+import DriverRegistrationForm from "./DriverRegistrationForm";
 import ForumEditProfile from "../forum/forumProfile/FormEditProfile";
 
 const pages = [
@@ -48,10 +51,15 @@ function Nav() {
   const [activePage, setActivePage] = useState(pages[0].name);
   const [openEdit, setOpenEdit] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
+  const [openDriverReg, setOpenDriverReg] = useState(false);
 
   const userId = localStorage.getItem("userId");
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Handle open and close actions
+  const handleOpenDriverReg = () => setOpenDriverReg(true);
+  const handleCloseDriverReg = () => setOpenDriverReg(false);
 
   useEffect(() => {
     if (userId) {
@@ -238,7 +246,10 @@ function Nav() {
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
-                  <MenuItem onClick={handleViewProfile}>
+                  <MenuItem
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                    onClick={handleViewProfile}
+                  >
                     <Typography
                       sx={{
                         display: "flex",
@@ -250,6 +261,7 @@ function Nav() {
                       <PermIdentityIcon sx={{ mr: 1 }} /> {user.firstName}{" "}
                       {user.lastName}
                     </Typography>
+                    {user.role === "driver" && <CarRentalOutlinedIcon />}
                   </MenuItem>
                   <Divider variant="middle" component="li" />
                   {user.role === "admin" ? (
@@ -332,7 +344,20 @@ function Nav() {
                       Thông báo
                     </Typography>
                   </MenuItem>
-
+                  {user.role !== "driver" && (
+                    <MenuItem onClick={handleOpenDriverReg}>
+                      <Typography
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "start",
+                          padding: "4px 14px 4px 4px",
+                        }}
+                      >
+                        <HowToRegIcon sx={{ mr: 1 }} /> Đăng kí tài xế
+                      </Typography>
+                    </MenuItem>
+                  )}
                   <MenuItem onClick={handleLogout}>
                     <Typography
                       sx={{
@@ -397,6 +422,10 @@ function Nav() {
         open={openEdit}
         handleClose={handleCloseEdit}
         userId={userId}
+      />
+      <DriverRegistrationForm
+        open={openDriverReg}
+        onClose={handleCloseDriverReg}
       />
       <NotificationDialog
         actorId={userId}

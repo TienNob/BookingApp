@@ -18,6 +18,7 @@ import AdminNav from "./AdminNav";
 import AdminTrips from "./adminTrip/AdminTrips";
 import AdminOverview from "./adminOverview/AdminOverview";
 import AdminUsers from "./adminUsers/AdminUsers";
+import AdminRequest from "./adminRequest/AdminRequest";
 import { Routes, Route } from "react-router-dom";
 
 function Admin(params) {
@@ -66,6 +67,7 @@ function Admin(params) {
           <Route path="trips" element={<AdminTrips />} />
           <Route path="overview" element={<AdminOverview />} />
           <Route path="users" element={<AdminUsers />} />
+          <Route path="request" element={<AdminRequest />} />
         </Routes>
       </Box>
     </Box>

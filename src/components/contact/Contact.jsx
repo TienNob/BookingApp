@@ -224,6 +224,7 @@ function Contact(params) {
                     sx={{
                       marginTop: "20px",
                       backgroundColor: "var(--primary-color)",
+                      "&:hover": { backgroundColor: "var(--hover-color)" },
                     }}
                   >
                     Gửi <SendIcon sx={{ ml: 1 }} />

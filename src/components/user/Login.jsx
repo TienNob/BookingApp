@@ -9,11 +9,13 @@ import {
   FormControlLabel,
   Checkbox,
   Container,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "../../assets/logo.png";
-
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import Loadding from "../Loadding";
 function Login() {
@@ -23,6 +25,7 @@ function Login() {
   const [phoneError, setPhoneError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -149,12 +152,24 @@ function Login() {
                   fullWidth
                   id="password"
                   label="Mật khẩu"
-                  type="password"
+                  type={showPassword ? "text" : "password"} // Toggle password visibility
                   variant="outlined"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   helperText={passwordError && "Mật khẩu không được để trống."}
                   error={passwordError}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
                 <Box
                   sx={{

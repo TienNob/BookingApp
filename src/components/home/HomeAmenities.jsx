@@ -1,8 +1,8 @@
 import { Box, Container, Stack, Typography, Grid, Paper } from "@mui/material";
-import WifiIcon from "@mui/icons-material/Wifi";
-import BedOutlinedIcon from "@mui/icons-material/BedOutlined";
-import LocalDrinkOutlinedIcon from "@mui/icons-material/LocalDrinkOutlined";
-import HeadphonesOutlinedIcon from "@mui/icons-material/HeadphonesOutlined";
+import ConnectWithoutContactIcon from "@mui/icons-material/ConnectWithoutContact";
+import GroupAddIcon from "@mui/icons-material/GroupAdd";
+import PaymentsIcon from "@mui/icons-material/Payments";
+import QueryStatsIcon from "@mui/icons-material/QueryStats";
 function HomeAmenities(params) {
   return (
     <Box sx={{ paddingBottom: "90px" }}>
@@ -40,7 +40,7 @@ function HomeAmenities(params) {
           <Grid item xs={6} sm={3}>
             <Paper className="homeStep-card homeAmenities-card" elevation={1}>
               <Box>
-                <WifiIcon
+                <ConnectWithoutContactIcon
                   className="homeAmenities-card_icon"
                   sx={{
                     fontSize: "80px",
@@ -61,14 +61,14 @@ function HomeAmenities(params) {
                 }}
                 variant="p"
               >
-                Wifi
+                Cộng đồng rộng lớn
               </Typography>
             </Paper>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Paper className="homeStep-card homeAmenities-card" elevation={1}>
               <Box>
-                <BedOutlinedIcon
+                <GroupAddIcon
                   sx={{
                     fontSize: "80px",
                     color: "var(--grey)",
@@ -89,14 +89,14 @@ function HomeAmenities(params) {
                 variant="p"
                 className="homeAmenities-card_text"
               >
-                Giường Nằm
+                Thêm bạn thêm vui
               </Typography>
             </Paper>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Paper className="homeStep-card homeAmenities-card" elevation={1}>
               <Box>
-                <LocalDrinkOutlinedIcon
+                <PaymentsIcon
                   sx={{
                     fontSize: "80px",
                     color: "var(--grey)",
@@ -117,14 +117,14 @@ function HomeAmenities(params) {
                 variant="p"
                 className="homeAmenities-card_text"
               >
-                Nước Uống
+                Thanh toán nhanh chống
               </Typography>
             </Paper>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Paper className="homeStep-card homeAmenities-card" elevation={1}>
               <Box>
-                <HeadphonesOutlinedIcon
+                <QueryStatsIcon
                   sx={{
                     fontSize: "80px",
                     color: "var(--grey)",
@@ -145,7 +145,7 @@ function HomeAmenities(params) {
                 variant="p"
                 className="homeAmenities-card_text"
               >
-                Nhạc
+                Tìm kiếm dễ dàng
               </Typography>
             </Paper>
           </Grid>

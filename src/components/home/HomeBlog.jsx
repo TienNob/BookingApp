@@ -1,12 +1,13 @@
 import { Box, Container, Stack, Typography, Grid, Avatar } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import { CardActionArea } from "@mui/material";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import { deepOrange } from "@mui/material/colors";
 
 function HomeBlog(params) {
+  const navigate = useNavigate();
   return (
     <Box sx={{ paddingBottom: "90px" }}>
       <Container>
@@ -22,7 +23,7 @@ function HomeBlog(params) {
               }}
               variant="h3"
             >
-              Bài Viết
+              Diễn Đàn
             </Typography>
             <Typography
               sx={{
@@ -40,7 +41,7 @@ function HomeBlog(params) {
         </Container>
         <Grid container justifyContent="center" spacing={4}>
           <Grid item xs={12} sm={6} md={4}>
-            <Card elevation={3}>
+            <Card onClick={() => navigate("/forum")} elevation={3}>
               <CardActionArea>
                 <CardMedia
                   component="img"
@@ -127,7 +128,7 @@ function HomeBlog(params) {
             </Card>
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
-            <Card elevation={3}>
+            <Card onClick={() => navigate("/forum")} elevation={3}>
               <CardActionArea>
                 <CardMedia
                   component="img"
@@ -211,7 +212,7 @@ function HomeBlog(params) {
             </Card>
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
-            <Card elevation={3}>
+            <Card onClick={() => navigate("/forum")} elevation={3}>
               <CardActionArea>
                 <CardMedia
                   component="img"

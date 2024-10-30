@@ -39,8 +39,12 @@ const NotificationDialog = ({ actorId, open, onClose }) => {
     }
   }, [open, actorId]);
   const handleNotificationClick = (tripId) => {
-    onClose(); // Close the dialog
-    navigate(`/ticket-detail/${tripId}`); // Navigate to the trip page
+    if (tripId !== "") {
+      onClose(); // Close the dialog
+      navigate(`/ticket-detail/${tripId}`);
+    } else {
+      navigate("/");
+    } // Navigate to the trip page
   };
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">

@@ -4,6 +4,8 @@ import imgLogo from "../../assets/ImgLogo.png";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import CommuteIcon from "@mui/icons-material/Commute";
 import PeopleIcon from "@mui/icons-material/People";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
+
 function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -101,7 +103,32 @@ function AdminSidebar() {
           />{" "}
           <ListItemText primary="Người dùng" />
         </ListItem>
-
+        <ListItem
+          sx={{
+            borderRadius: "10px",
+            backgroundColor: isActive("/admin/request")
+              ? "var(--bg-btn)"
+              : "transparent",
+            "&:hover": {
+              backgroundColor: "var(--hover-bg-btn)",
+            },
+            color: isActive("/admin/request")
+              ? "var(--primary-color)"
+              : "inherit",
+          }}
+          button
+          onClick={() => handleListItemClick("/admin/request")}
+        >
+          <HowToRegIcon
+            sx={{
+              mr: 1,
+              color: isActive("/admin/request")
+                ? "var(--primary-color)"
+                : "var(--grey)",
+            }}
+          />{" "}
+          <ListItemText primary="Phê duyệt" />
+        </ListItem>
         {/* Add more items as needed */}
       </List>
     </Box>

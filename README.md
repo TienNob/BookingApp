@@ -1,4 +1,4 @@
-<img width="354" alt="image" src="https://github.com/user-attachments/assets/e4af10cd-a047-47df-9132-6401ec997435"># Tên Dự Án
+# Tên Dự Án
 
 NOB - Website kết nối cộng đồng chia sẽ chuyến đi
 

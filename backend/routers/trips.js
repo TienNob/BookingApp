@@ -311,23 +311,23 @@ router.post("/:id/reviews", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Failed to add review", error });
   }
 });
+router.get("/:userId/reviews", async (req, res) => {
+  try {
+    const { userId } = req.params;
 
-// Get all reviews for a trip
-// router.get("/:id/reviews", async (req, res) => {
-//   try {
-//     const trip = await Trip.findById(req.params.id).populate(
-//       "reviews.user",
-//       "firstName lastName"
-//     );
+    // Tìm tất cả các chuyến đi của người dùng
+    const trips = await Trip.find({ user: userId }).select("reviews").populate({
+      path: "reviews.user",
+      select: "firstName lastName avatar",
+    });
 
-//     if (!trip) {
-//       return res.status(404).json({ message: "Trip not found" });
-//     }
+    // Tạo mảng chứa tất cả các đánh giá từ các chuyến đi của user
+    const reviews = trips.flatMap((trip) => trip.reviews);
 
-//     res.status(200).json(trip.reviews);
-//   } catch (error) {
-//     res.status(500).json({ message: "Failed to fetch reviews", error });
-//   }
-// });
-
-// module.exports = router;
+    res.status(200).json(reviews);
+  } catch (error) {
+    console.error("Error fetching reviews for user:", error);
+    res.status(500).json({ message: "Failed to load user reviews", error });
+  }
+});
+module.exports = router;

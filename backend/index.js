@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const session = require("express-session");
 const http = require("http");
 const cors = require("cors");
 const connection = require("./db");
@@ -18,6 +19,15 @@ const initSocket = require("./socket"); // Import file socket.js
 const app = express();
 // database connection
 connection();
+// Cấu hình middleware cho session
+app.use(
+  session({
+    secret: "your_secret_key", // Thay thế bằng khóa bí mật của bạn
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }, // Nếu bạn sử dụng HTTPS, hãy thay đổi thành true
+  })
+);
 
 // middlewares
 app.use(express.json());

@@ -19,6 +19,8 @@ import {
   DialogActions,
   CardActionArea,
   CardMedia,
+  Tabs,
+  Tab,
   AvatarGroup,
 } from "@mui/material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
@@ -34,7 +36,10 @@ import coverImgDefault from "../../../assets/coverIMG.png";
 import ForumContent from "../forumMain/ForumContent";
 import FormEditProfile from "./FormEditProfile";
 import ImagePreview from "../../ImagePreview";
-
+import ProfileImage from "./ProfileImage";
+import ReviewsContent from "./ReviewContent";
+import ProfileFriend from "./ProfileFriend";
+import ProfileFollower from "./ProfileFollower";
 const ForumProfile = () => {
   const { userId } = useParams();
   const [user, setUser] = useState(null);
@@ -53,6 +58,7 @@ const ForumProfile = () => {
   const [openAvatarPreviewDialog, setOpenAvatarPreviewDialog] = useState(false); // New state for avatar dialog
   const [openModal, setOpenModal] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [selectedTab, setSelectedTab] = useState(0);
   const [selectedImage, setSelectedImage] = useState("");
   const token = localStorage.getItem("token");
   const { enqueueSnackbar } = useSnackbar(); // Initialize snackbar
@@ -274,6 +280,9 @@ const ForumProfile = () => {
   };
   const handleOpenEdit = () => {
     setOpenEdit(true);
+  };
+  const handleTabChange = (event, newValue) => {
+    setSelectedTab(newValue);
   };
 
   const handleCloseEdit = () => {
@@ -537,12 +546,19 @@ const ForumProfile = () => {
           <Grid item xs={12} md={4}>
             <Card>
               <CardContent>
-                <Typography mb={2} variant="h6">
+                <Typography
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => {
+                    setSelectedTab(2);
+                  }}
+                  mb={2}
+                  variant="h6"
+                >
                   Hình ảnh
                 </Typography>
                 <Grid container spacing={1}>
                   {images.length > 0 ? (
-                    images.map((image, index) => (
+                    images.slice(0, 3).map((image, index) => (
                       <Grid item xs={4} sm={3} md={4} key={index}>
                         <Card
                           sx={{
@@ -567,6 +583,29 @@ const ForumProfile = () => {
                               objectFit: "cover",
                             }}
                           />
+                          {index === 2 && images.length > 3 && (
+                            <Box
+                              onClick={() => {
+                                setSelectedTab(2);
+                              }}
+                              sx={{
+                                position: "absolute",
+                                cursor: "pointer",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                height: "100%",
+                                bgcolor: "rgba(0, 0, 0, 0.5)",
+                                color: "white",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                fontSize: "1.5rem",
+                              }}
+                            >
+                              +{images.length - 3}
+                            </Box>
+                          )}
                         </Card>
                       </Grid>
                     ))
@@ -584,11 +623,20 @@ const ForumProfile = () => {
             </Card>
             <Card sx={{ mt: 2 }}>
               <CardContent>
-                <Typography variant="h6">Đang theo dỗi</Typography>
+                <Typography
+                  onClick={() => {
+                    setSelectedTab(3);
+                  }}
+                  variant="h6"
+                  sx={{ cursor: "pointer" }}
+                >
+                  Đang theo dỗi
+                </Typography>
                 <Grid container spacing={2} mt={1}>
-                  {friends.map((friend) => (
+                  {friends.slice(0, 6).map((friend) => (
                     <Grid item xs={4} md={4} lg={4} key={friend._id}>
                       <Card
+                        sx={{ height: "100%" }}
                         onClick={() => {
                           handleViewProfile(friend._id);
                         }}
@@ -620,6 +668,7 @@ const ForumProfile = () => {
               </CardContent>
             </Card>
           </Grid>
+
           <Grid item xs={12} md={8}>
             <Box>
               <Card
@@ -630,15 +679,43 @@ const ForumProfile = () => {
                 }}
               >
                 <CardContent>
-                  <Typography variant="h6">Bài viết</Typography>
+                  <Tabs
+                    variant="scrollable"
+                    scrollButtons={false}
+                    sx={{ color: "var(--primary-color) !important" }}
+                    value={selectedTab}
+                    onChange={handleTabChange}
+                  >
+                    <Tab label="Bài viết" />
+                    <Tab label="Đánh giá" />
+                    <Tab label="Hình ảnh" />
+                    <Tab label="Đang theo dỗi" />
+                    <Tab label="Được theo dỗi" />
+                  </Tabs>{" "}
                 </CardContent>
               </Card>
-              {posts.length === 0 ? (
-                <Typography variant="h6" color="textSecondary">
-                  Không có bài viết
-                </Typography>
+              {selectedTab === 0 ? (
+                posts.length === 0 ? (
+                  <Typography variant="h6" color="textSecondary">
+                    Không có bài viết
+                  </Typography>
+                ) : (
+                  <ForumContent postsData={posts} userId={userIdLocal} />
+                )
+              ) : selectedTab === 1 ? (
+                <ReviewsContent userId={userIdLocal} />
+              ) : selectedTab === 2 ? (
+                <ProfileImage userId={userIdLocal} images={images} />
+              ) : selectedTab === 3 ? (
+                <ProfileFriend
+                  friends={friends}
+                  onViewProfile={handleViewProfile}
+                />
               ) : (
-                <ForumContent postsData={posts} userId={userIdLocal} />
+                <ProfileFollower
+                  followers={followers}
+                  handleViewProfile={handleViewProfile}
+                />
               )}
             </Box>
           </Grid>

@@ -39,8 +39,8 @@ function HomeStep(params) {
               }}
               variant="p"
             >
-              Đặt vé và tận hưỡng chuyến đi chưa bao giờ là dễ dàng đến vậy. Bạn
-              chỉ cần cầm tấm vé và tận hưởng chuyển đi tuyệt với của mình thôi!
+              Đặt vé và tận hưỡng chuyến đi chưa bao giờ là dễ dàng đến vậy. Vài
+              thao tác và tận hưởng chuyển đi tuyệt với của mình thôi!
             </Typography>
           </Stack>
         </Container>

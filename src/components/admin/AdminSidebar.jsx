@@ -18,7 +18,17 @@ function AdminSidebar() {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "center", pt: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "start",
+          pt: 2,
+          my: 2,
+          ml: 3,
+          cursor: "pointer",
+        }}
+        onClick={() => navigate("/admin/overview")}
+      >
         <img src={imgLogo} alt="Logo" width={137} />
       </Box>
       <List sx={{ pr: 1, pl: 1 }}>

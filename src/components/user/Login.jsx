@@ -18,6 +18,7 @@ import logo from "../../assets/logo.png";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import Loadding from "../Loadding";
+import FacebookLogin from "./FacebookLogin";
 function Login() {
   const { enqueueSnackbar } = useSnackbar();
   const [phone, setPhone] = useState("");
@@ -115,7 +116,7 @@ function Login() {
                     fontSize: "22px",
                     fontWeight: "600",
                     textAlign: "center",
-                    margin: "10px 0",
+                    margin: "20px 0 10px",
                     color: "var(--primary-color)",
                   }}
                   variant="h5"
@@ -184,14 +185,7 @@ function Login() {
                     control={<Checkbox color="default" defaultChecked />}
                     label="Lưu đăng nhập"
                   />
-                  <Typography
-                    sx={{
-                      color: "var(--primary-color)",
-                    }}
-                    variant="body2"
-                  >
-                    Quên mật khẩu?
-                  </Typography>
+                  <FacebookLogin />
                 </Box>
                 <Button
                   sx={{
@@ -207,6 +201,7 @@ function Login() {
                 >
                   Đăng Nhập
                 </Button>
+
                 <Box>
                   <Link
                     to={"/signup"}

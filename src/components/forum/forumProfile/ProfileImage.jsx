@@ -17,7 +17,7 @@ const ProfileImage = ({ images }) => {
   return (
     <Box>
       {images.length === 0 ? (
-        <Typography variant="body2" color="textSecondary">
+        <Typography variant="h6" color="textSecondary">
           Người dùng này chưa có hình ảnh.
         </Typography>
       ) : (

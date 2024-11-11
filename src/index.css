@@ -36,6 +36,12 @@
 .css-1u4zpwo-MuiSvgIcon-root-MuiStepIcon-root.Mui-completed {
   color: var(--secondary-color) !important;
 }
+.css-1h9z7r5-MuiButtonBase-root-MuiTab-root.Mui-selected {
+  color: var(--primary-color) !important;
+}
+.css-1aquho2-MuiTabs-indicator {
+  background-color: var(--primary-color) !important;
+}
 button {
   transition: all 0.3s ease !important;
 }

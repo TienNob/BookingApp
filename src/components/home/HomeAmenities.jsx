@@ -31,8 +31,8 @@ function HomeAmenities(params) {
               }}
               variant="p"
             >
-              Đặt vé và tận hưỡng chuyến đi chưa bao giờ là dễ dàng đến vậy. Bạn
-              chỉ cần cầm tấm vé và tận hưởng chuyển đi tuyệt với của mình thôi!
+              Những tiện nghi mà ứng dụng mang lại sẽ giúp bạn có những trãi
+              nghiệp thật thoải mái.
             </Typography>
           </Stack>
         </Container>

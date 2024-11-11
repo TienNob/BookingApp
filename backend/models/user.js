@@ -5,13 +5,13 @@ const passwordComplexity = require("joi-password-complexity");
 
 const userSchema = new mongoose.Schema(
   {
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    phone: { type: String, required: true },
+    firstName: { type: String },
+    lastName: { type: String },
+    phone: { type: String },
     cccd: { type: String },
-    sex: { type: String, required: true },
-    birthDay: { type: Date, required: true },
-    password: { type: String, required: true },
+    sex: { type: String },
+    birthDay: { type: Date },
+    password: { type: String },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Friends list
     avatar: { type: String }, // Path to the avatar image file
     coverPhoto: { type: String }, // Path to the cover photo file
@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema(
       default: 0,
     },
     role: { type: String, enum: ["admin", "user", "driver"], default: "user" }, // New role field
+    firebaseUserId: { type: String },
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt

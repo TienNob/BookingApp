@@ -40,11 +40,11 @@ const ReviewContent = ({ userId }) => {
   return (
     <Box>
       {loading ? (
-        <Typography variant="body1" color="textSecondary">
+        <Typography variant="h6" color="textSecondary">
           Đang tải đánh giá...
         </Typography>
       ) : reviews.length === 0 ? (
-        <Typography variant="body1" color="textSecondary">
+        <Typography variant="h6" color="textSecondary">
           Không có đánh giá nào.
         </Typography>
       ) : (

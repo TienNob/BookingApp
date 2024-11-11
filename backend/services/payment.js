@@ -16,7 +16,7 @@ const config = {
   key2: "kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz",
   endpoint: "https://sb-openapi.zalopay.vn/v2/create",
 };
-
+const adminId = "66fd09e4c0ddfd60147b06c4";
 // Route tạo thanh toán ZaloPay
 router.post("/", async (req, res) => {
   try {
@@ -53,7 +53,7 @@ router.post("/", async (req, res) => {
       embed_data: JSON.stringify(embed_data),
       amount: amount,
       callback_url:
-        "https://d278-103-156-2-76.ngrok-free.app/api/payment/callback",
+        "https://c24c-103-156-4-231.ngrok-free.app/api/payment/callback",
       description: description || `Payment for order #${transID}`,
       bank_code: "",
     };
@@ -195,6 +195,12 @@ router.post("/callback", async (req, res) => {
         link: tripId,
       });
       await newNotification.save();
+      const adminNotification = new Notification({
+        actorId: adminId,
+        message: `${firstName} ${lastName} đã mua vé ${location} của ${actor.firstName} ${actor.lastName} . Số ghế: ${seatsPurchased}, Tổng tiền: ${amountPaid} VND`,
+        link: tripId,
+      });
+      await adminNotification.save();
 
       result.return_code = 1;
       result.return_message = "success";

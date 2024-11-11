@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Container, Grid, Typography, Link, Divider } from "@mui/material";
 import logo from "../../assets/ImgLogo.png";
 import footerBg from "../../assets/footer.png";
@@ -76,7 +75,7 @@ function Footer() {
             </Link>
             <Link
               className="footer-link"
-              href="#"
+              href="/tickets"
               color="inherit"
               variant="body2"
             >
@@ -84,15 +83,15 @@ function Footer() {
             </Link>
             <Link
               className="footer-link"
-              href="#"
+              href="#forum"
               color="inherit"
               variant="body2"
             >
-              <ArrowRightOutlinedIcon /> Bài viết
+              <ArrowRightOutlinedIcon /> Diễn đàn
             </Link>
             <Link
               className="footer-link"
-              href="#"
+              href="/contact"
               color="inherit"
               variant="body2"
             >

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -40,9 +41,14 @@ const Ticket = () => {
   const [timeRange, setTimeRange] = useState([0, 24]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStatus, setSelectedStatus] = useState("hoat_dong");
-
   const itemsPerPage = 10;
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialDeparture = queryParams.get("departure");
+  const initialDestination = queryParams.get("destination");
   const navigate = useNavigate();
+  console.log(initialDeparture, initialDestination);
+
   useEffect(() => {
     const fetchTrips = async () => {
       try {
@@ -207,7 +213,6 @@ const Ticket = () => {
   const handleViewDetails = (tripId) => {
     navigate(`/ticket-detail/${tripId}`);
   };
-
   return (
     <Box sx={{ display: "flex", justifyContent: "center", mt: "100px" }}>
       <Container>
@@ -216,7 +221,11 @@ const Ticket = () => {
             <Autocomplete
               options={provinces}
               getOptionLabel={(option) => option}
-              value={selectedDeparture}
+              value={
+                initialDeparture !== "undefined"
+                  ? initialDeparture
+                  : selectedDeparture
+              }
               onChange={(event, newValue) => setSelectedDeparture(newValue)}
               renderInput={(params) => (
                 <TextField
@@ -232,7 +241,11 @@ const Ticket = () => {
             <Autocomplete
               options={provinces}
               getOptionLabel={(option) => option}
-              value={selectedDestination}
+              value={
+                initialDestination !== "undefined"
+                  ? initialDestination
+                  : selectedDestination
+              }
               onChange={(event, newValue) => setSelectedDestination(newValue)}
               renderInput={(params) => (
                 <TextField {...params} label="Điểm đến" variant="outlined" />
@@ -287,6 +300,11 @@ const Ticket = () => {
                 setDepartureDate(null);
                 setTrips(originalTrips);
                 setFilteredTrips(originalTrips);
+                setSelectedStatus("");
+                navigate({
+                  pathname: window.location.pathname, // Keep the same path
+                  search: "", // Clear query parameters
+                });
               }}
             >
               <RestartAltOutlinedIcon />

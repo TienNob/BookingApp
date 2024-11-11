@@ -34,8 +34,8 @@ function HomeBlog(params) {
               }}
               variant="p"
             >
-              Đặt vé và tận hưỡng chuyến đi chưa bao giờ là dễ dàng đến vậy. Bạn
-              chỉ cần cầm tấm vé và tận hưởng chuyển đi tuyệt với của mình thôi!
+              Chia sẽ chuyến đi thật dễ dàng với một cộng đồng siêu lớn. Ban chỉ
+              cần lướt tin tức mới nhất để có những chuyến đi phù hợp với bạn!
             </Typography>
           </Stack>
         </Container>

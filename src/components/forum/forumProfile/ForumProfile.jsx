@@ -467,10 +467,17 @@ const ForumProfile = () => {
                 <Typography variant="body2" color="textSecondary">
                   {user.followers.length} Người theo dỗi
                 </Typography>
-                <AvatarGroup sx={{ justifyContent: "flex-end" }} max={4}>
+                <AvatarGroup
+                  onClick={() => {
+                    setSelectedTab(4);
+                  }}
+                  sx={{ justifyContent: "flex-end" }}
+                  max={4}
+                >
                   {followers.map((follower) => (
                     <Avatar
                       sx={{
+                        cursor: "pointer",
                         width: "24px",
                         height: "24px",
                       }}
@@ -631,6 +638,16 @@ const ForumProfile = () => {
                   sx={{ cursor: "pointer" }}
                 >
                   Đang theo dỗi
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => {
+                    setSelectedTab(3);
+                  }}
+                >
+                  {friends.length} người bạn đang theo dỗi
                 </Typography>
                 <Grid container spacing={2} mt={1}>
                   {friends.slice(0, 6).map((friend) => (

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Container,
@@ -21,8 +22,19 @@ import arrow from "../../assets/arrow.png";
 import imgBus from "../../assets/imgBus.png";
 
 function HomeBanner() {
+  const navigate = useNavigate();
   const [provinces, setProvinces] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDeparture, setSelectedDeparture] = useState("");
+  const [selectedDestination, setSelectedDestination] = useState("");
+
+  const handleSearch = () => {
+    const date = selectedDate ? selectedDate.toISOString() : "";
+
+    navigate(
+      `/tickets?departure=${selectedDeparture.name}&destination=${selectedDestination.name}&date=${date}`
+    );
+  };
   useEffect(() => {
     axios
       .get("https://api.nosomovo.xyz/province/getalllist/193")
@@ -57,6 +69,9 @@ function HomeBanner() {
               Bạn đang cần cộng đồng chia sẽ chuyến đi ?
             </Typography>
             <Button
+              onClick={() => {
+                navigate("/forum");
+              }}
               variant="contained"
               sx={{
                 backgroundColor: "var(--primary-color)",
@@ -91,6 +106,9 @@ function HomeBanner() {
                     id="province-start"
                     options={provinces}
                     getOptionLabel={(option) => option.name}
+                    onChange={(event, newValue) =>
+                      setSelectedDeparture(newValue)
+                    }
                     sx={{ width: "100%" }}
                     renderInput={(params) => (
                       <TextField {...params} label="Điểm đi" />
@@ -101,6 +119,9 @@ function HomeBanner() {
                   <Autocomplete
                     id="province-end"
                     options={provinces}
+                    onChange={(event, newValue) =>
+                      setSelectedDestination(newValue)
+                    }
                     getOptionLabel={(option) => option.name}
                     sx={{ width: "100%" }}
                     renderInput={(params) => (
@@ -132,6 +153,7 @@ function HomeBanner() {
               </Grid>
               <Grid sx={{ textAlign: "center", marginTop: 2 }} item xs={12}>
                 <Button
+                  onClick={handleSearch}
                   variant="contained"
                   sx={{
                     backgroundColor: "var(--primary-color)",

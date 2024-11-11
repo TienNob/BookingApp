@@ -27,7 +27,6 @@ import { useSnackbar } from "notistack";
 import axios from "axios";
 import logo from "../../assets/logo.png";
 import Loadding from "../Loadding";
-
 function SignUp() {
   const { enqueueSnackbar } = useSnackbar();
   const [showPassword, setShowPassword] = useState(false);
@@ -314,6 +313,7 @@ function SignUp() {
                 >
                   Đăng Kí
                 </Button>
+
                 <Box>
                   <Link
                     to={"/login"}

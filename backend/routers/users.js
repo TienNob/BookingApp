@@ -62,10 +62,6 @@ router.get("/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password -__v");
     if (!user) return res.status(404).send({ message: "User not found" });
-    if (user.role === "admin")
-      return res
-        .status(403)
-        .send({ message: "Access to admin data is forbidden" });
 
     res.status(200).send(user);
   } catch (error) {

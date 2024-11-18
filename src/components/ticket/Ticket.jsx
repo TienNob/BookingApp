@@ -221,11 +221,7 @@ const Ticket = () => {
             <Autocomplete
               options={provinces}
               getOptionLabel={(option) => option}
-              value={
-                initialDeparture !== "undefined"
-                  ? initialDeparture
-                  : selectedDeparture
-              }
+              value={selectedDestination || initialDestination || ""}
               onChange={(event, newValue) => setSelectedDeparture(newValue)}
               renderInput={(params) => (
                 <TextField
@@ -241,11 +237,7 @@ const Ticket = () => {
             <Autocomplete
               options={provinces}
               getOptionLabel={(option) => option}
-              value={
-                initialDestination !== "undefined"
-                  ? initialDestination
-                  : selectedDestination
-              }
+              value={selectedDestination || initialDestination || ""}
               onChange={(event, newValue) => setSelectedDestination(newValue)}
               renderInput={(params) => (
                 <TextField {...params} label="Điểm đến" variant="outlined" />

@@ -33,6 +33,7 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
+    // Find the trip and populate user and review fields
     const trip = await Trip.findById(req.params.id).populate("user").populate({
       path: "reviews.user",
       select: "firstName lastName avatar",
@@ -42,7 +43,21 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Trip not found" });
     }
 
-    res.status(200).json(trip);
+    // Find tickets related to the trip and populate user fields
+    const tickets = await Ticket.find({ trip: trip._id }).populate(
+      "user",
+      "firstName lastName"
+    );
+
+    // Convert the trip document to a plain JavaScript object to add custom fields
+    const tripWithTickets = trip.toObject();
+
+    // Add the tickets array with the desired structure
+    tripWithTickets.tickets = tickets.map((ticket) => ({
+      customerId: `${ticket.user._id}`,
+    }));
+
+    res.status(200).json(tripWithTickets);
   } catch (error) {
     res.status(500).json({ message: "Server Error", error });
   }

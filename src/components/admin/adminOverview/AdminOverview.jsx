@@ -676,7 +676,9 @@ function AdminOverview() {
               alignItems="center"
             >
               <Typography variant="h6" sx={{ color: "var(--text-color)" }}>
-                Top người dùng có{" "}
+                {viewMode === "totalCost"
+                  ? " Top người dùng có"
+                  : " Top tài xế có"}{" "}
                 {viewMode === "totalCost" ? "tổng chi tiêu" : "tổng thu nhập"}{" "}
                 cao nhất
               </Typography>

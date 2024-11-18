@@ -44,7 +44,10 @@ const TicketDetail = () => {
   const [reviews, setReviews] = useState([]);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
-  const [visibleReviews, setVisibleReviews] = useState(3); // Start by showing 3 reviews
+  const [visibleReviews, setVisibleReviews] = useState(3);
+  const [showIncompleteTripMessage, setShowIncompleteTripMessage] =
+    useState(false);
+  const [isEligibleToReview, setIsEligibleToReview] = useState(false);
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
   const userLocal = JSON.parse(localStorage.getItem("user"));
@@ -78,6 +81,8 @@ const TicketDetail = () => {
     };
     fetchTripDetail();
   }, [id]);
+  console.log(trip);
+
   const handleSeatCountChange = (event) => {
     const value = parseInt(event.target.value);
     if (selectedRoute) {
@@ -178,11 +183,31 @@ const TicketDetail = () => {
     setSelectedImage("");
   };
 
-  const handleRatingChange = (event, newRating) => {
-    setRating(newRating); // Update rating state
+  const handleRatingChange = (event, newValue) => {
+    setRating(newValue);
+    const eligibleCustomer = trip.tickets.some(
+      (ticket) => ticket.customerId === userId
+    );
+    setIsEligibleToReview(eligibleCustomer);
+    if (trip.state !== 7 || !eligibleCustomer) {
+      setShowIncompleteTripMessage(true);
+      console.log(1);
+    } else {
+      setShowIncompleteTripMessage(false);
+      console.log(2);
+    }
   };
   const handleReviewChange = (event) => {
-    setReview(event.target.value); // Update review text state
+    setReview(event.target.value);
+    const eligibleCustomer = trip.tickets.some(
+      (ticket) => ticket.customerId === userId
+    );
+    setIsEligibleToReview(eligibleCustomer && trip.state === 7);
+    if (trip.state !== 7 || !eligibleCustomer) {
+      setShowIncompleteTripMessage(true);
+    } else {
+      setShowIncompleteTripMessage(false);
+    }
   };
 
   const handleRatingSubmit = async (e) => {
@@ -785,21 +810,30 @@ const TicketDetail = () => {
               value={review}
               onChange={handleReviewChange} // Handle review text change
               variant="outlined"
-              sx={{ mb: 2 }}
+              sx={{ mb: 1 }}
               fullWidth
             />
+            {showIncompleteTripMessage && (
+              <Typography variant="caption" sx={{ color: "var(--red)", ml: 1 }}>
+                {isEligibleToReview
+                  ? "Bạn chưa thể đánh giá do chuyến đi chưa kết thúc"
+                  : "Bạn không thể đánh giá vì bạn không phải là khách hàng của chuyến đi này"}
+              </Typography>
+            )}
+
             <Button
               variant="contained"
               onClick={handleRatingSubmit} // Submit the rating
               sx={{
                 mb: 3,
+                mt: 2,
                 borderRadius: 3,
                 backgroundColor: "var(--primary-color)",
                 "&:hover": {
                   backgroundColor: "var(--hover-color)",
                 },
               }}
-              disabled={rating === 0} // Disable button if no rating is selected
+              disabled={rating === 0 || trip.state !== 7}
             >
               Gửi đánh giá
             </Button>

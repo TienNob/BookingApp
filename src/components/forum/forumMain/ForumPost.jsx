@@ -377,6 +377,11 @@ function ForumPost({ open, handleClose }) {
       });
   }, [userId]);
   const handleShowTripDetail = () => {
+    if (user.role === "user") {
+      enqueueSnackbar("Vui lòng đăng kí tài khoản tài xế để tạo chuyến đi!", {
+        variant: "warning",
+      });
+    }
     if (user.cccd === undefined || user.cccd === "") {
       enqueueSnackbar(
         "Vui lòng cập nhật thông tin CCCD trước khi tạo chuyến đi!",

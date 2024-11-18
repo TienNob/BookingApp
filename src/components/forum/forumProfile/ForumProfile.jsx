@@ -457,11 +457,13 @@ const ForumProfile = () => {
               <Box>
                 <Typography variant="h4">
                   {user.firstName} {user.lastName}{" "}
-                  <Tooltip title="Tài khoản tài xế">
-                    <CarRentalOutlinedIcon
-                      sx={{ color: "var(--secondary-color)" }}
-                    />
-                  </Tooltip>
+                  {user.role === "driver" && (
+                    <Tooltip title="Tài khoản tài xế">
+                      <CarRentalOutlinedIcon
+                        sx={{ color: "var(--secondary-color)" }}
+                      />
+                    </Tooltip>
+                  )}
                 </Typography>
 
                 <Typography variant="body2" color="textSecondary">

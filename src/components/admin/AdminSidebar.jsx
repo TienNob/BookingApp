@@ -89,6 +89,7 @@ function AdminSidebar() {
         </ListItem>
         <ListItem
           sx={{
+            mb: 0.5,
             borderRadius: "10px",
             backgroundColor: isActive("/admin/users")
               ? "var(--bg-btn)"

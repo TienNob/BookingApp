@@ -20,11 +20,11 @@ module.exports = async () => {
       await new User({
         firstName: "Admin",
         lastName: "Admin",
-        phone: "0000000000", // Đổi số điện thoại phù hợp
+        phone: "0000000000",
         sex: "other",
         birthDay: new Date("2002-10-23"),
         password: hashPassword,
-        role: "admin", // Gán vai trò là admin
+        role: "admin",
       }).save();
 
       console.log("Default admin account created");

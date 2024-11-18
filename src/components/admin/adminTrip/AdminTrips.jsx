@@ -22,6 +22,7 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SearchIcon from "@mui/icons-material/Search";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ControlPointIcon from "@mui/icons-material/ControlPoint";
 import { useSnackbar } from "notistack";
@@ -143,6 +144,8 @@ function AdminTrips() {
   const [loading, setLoading] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
   const [viewDetails, setViewDetails] = useState(null);
+  const [filteredRows, setFilteredRows] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const token = localStorage.getItem("token");
 
   const fetchUserName = async (userId) => {
@@ -234,6 +237,8 @@ function AdminTrips() {
       .then(() => {
         setRows(rows.filter((row) => !selectedRows.includes(row)));
         setSelectedRows([]);
+        setFilteredRows(tripsWithUserNames);
+
         enqueueSnackbar("Đã xóa các chuyến đi được chọn thành công", {
           variant: "success",
         });
@@ -253,11 +258,28 @@ function AdminTrips() {
     setViewDetails(trip); // Set the selected trip details to state
   };
 
+  useEffect(() => {
+    const searchFilter = rows.filter(
+      (trip) =>
+        trip.locations
+          .join(" ")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        trip._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        trip.userName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredRows(searchFilter);
+  }, [searchQuery, rows]);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
   return (
     <Box sx={{ width: "100%" }}>
       <Box
         sx={{
-          mb: 6,
+          mb: 2,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -292,9 +314,23 @@ function AdminTrips() {
           )}
         </Box>{" "}
       </Box>{" "}
+      <TextField
+        sx={{ mb: 1, width: "100%" }}
+        variant="outlined"
+        placeholder="Tìm kiếm chuyến đi..."
+        value={searchQuery}
+        onChange={handleSearchChange}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
+        }}
+      />
       <DataGrid
         sx={{ color: "var(--text-color)" }} // Keep your existing styles
-        rows={rows}
+        rows={filteredRows}
         columns={columns(handleEdit, handleDelete, handleViewDetails)}
         getRowId={(row) => row._id} // Ensure each row uses _id as the unique identifier
         checkboxSelection

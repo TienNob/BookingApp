@@ -6,7 +6,6 @@ import {
   Typography,
   TextField,
   IconButton,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -279,7 +278,7 @@ function AdminTrips() {
     <Box sx={{ width: "100%" }}>
       <Box
         sx={{
-          mb: 2,
+          mb: 3,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",

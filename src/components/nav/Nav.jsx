@@ -6,6 +6,8 @@ import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
+import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
+import MarkunreadMailboxOutlinedIcon from "@mui/icons-material/MarkunreadMailboxOutlined";
 import ModeEditOutlineOutlinedIcon from "@mui/icons-material/ModeEditOutlineOutlined";
 import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 import CarRentalOutlinedIcon from "@mui/icons-material/CarRentalOutlined";
@@ -379,6 +381,42 @@ function Nav() {
                       Thông báo
                     </Typography>
                   </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      navigate(`/my-tickets`);
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "start",
+                        padding: "4px 14px 4px 4px",
+                      }}
+                    >
+                      <ConfirmationNumberOutlinedIcon sx={{ mr: 1 }} />
+                      Vé đã mua
+                    </Typography>
+                  </MenuItem>
+                  {user.role === "driver" && (
+                    <MenuItem
+                      onClick={() => {
+                        navigate(`/my-trips`);
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "start",
+                          padding: "4px 14px 4px 4px",
+                        }}
+                      >
+                        <MarkunreadMailboxOutlinedIcon sx={{ mr: 1 }} />
+                        Chuyến đi đã tạo
+                      </Typography>
+                    </MenuItem>
+                  )}
                   {user.role !== "driver" && (
                     <MenuItem onClick={handleOpenDriverReg}>
                       <Typography

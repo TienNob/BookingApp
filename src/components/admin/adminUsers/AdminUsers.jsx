@@ -14,6 +14,7 @@ import {
   DialogActions,
   Grid,
   Button,
+  TextField,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
@@ -127,6 +128,8 @@ function ActionsMenu({ params, handleEdit, handleDelete, handleViewDetails }) {
 function AdminUsers() {
   const { enqueueSnackbar } = useSnackbar();
   const [rows, setRows] = useState([]);
+  const [filteredRows, setFilteredRows] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -153,6 +156,7 @@ function AdminUsers() {
         }));
 
         setRows(usersWithIndex);
+        setFilteredRows(usersWithIndex);
       } catch (error) {
         console.error("Error fetching users", error);
         enqueueSnackbar("Error fetching users", { variant: "error" });
@@ -226,12 +230,32 @@ function AdminUsers() {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    const filtered = rows.filter((row) => {
+      const firstName = row.firstName || "";
+      const lastName = row.lastName || "";
+      const phone = row.phone || "";
+      const id = row._id || "";
+
+      return (
+        firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        phone.includes(searchTerm) ||
+        id.includes(searchTerm)
+      );
+    });
+
+    setFilteredRows(filtered);
+  }, [searchTerm, rows]);
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
   return (
     <Box sx={{ width: "100%" }}>
       <Box
         sx={{
-          mb: 6,
+          mb: 3,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -262,9 +286,17 @@ function AdminUsers() {
           ""
         )}
       </Box>
+      <TextField
+        fullWidth
+        variant="outlined"
+        placeholder="Tìm kiếm..."
+        value={searchTerm}
+        onChange={handleSearchChange}
+        sx={{ mb: 1 }}
+      />
 
       <DataGrid
-        rows={rows}
+        rows={filteredRows}
         columns={userColumns(handleEdit, handleDelete, handleViewDetails)}
         getRowId={(row) => row._id}
         pageSizeOptions={[10, 25, 35, 50]}

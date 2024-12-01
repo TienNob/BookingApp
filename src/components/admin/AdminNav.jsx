@@ -16,7 +16,6 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import SearchIcon from "@mui/icons-material/Search";
 import LogoutIcon from "@mui/icons-material/Logout";
 import WebIcon from "@mui/icons-material/Web";
 
@@ -152,7 +151,7 @@ function AdminNav({ handleDrawerToggle }) {
             },
           }}
         >
-          <List>
+          <List sx={{ height: "500px", overflowY: "scroll" }}>
             {notifications.length ? (
               notifications.map((notification) => (
                 <ListItem
@@ -163,8 +162,9 @@ function AdminNav({ handleDrawerToggle }) {
                     my: 1,
                     borderRadius: 3,
                     maxWidth: "500px",
+
                     backgroundColor: notification.isRead
-                      ? "#ccc"
+                      ? "#f5f5f5"
                       : "var(--bg-primary)", // Set a different color for unread notifications
                   }}
                 >

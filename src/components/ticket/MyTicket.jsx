@@ -37,6 +37,7 @@ function MyTicket() {
         const fetchedTickets = response.data;
 
         const userTickets = fetchedTickets.filter((ticket) => {
+          console.log(ticket.user._id === userId);
           return ticket.user._id === userId;
         });
 

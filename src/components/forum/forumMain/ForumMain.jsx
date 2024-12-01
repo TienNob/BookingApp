@@ -20,6 +20,10 @@ function ForumMain() {
     setOpenDialog(false);
   };
   const handleViewProfile = () => {
+    if (!token) {
+      navigate(`/login`);
+      return;
+    }
     navigate(`/forum-profile/${userId}`);
   };
   useEffect(() => {
@@ -53,7 +57,7 @@ function ForumMain() {
               transition: "all linear 0.3s",
               "&:hover": { opacity: 0.7 },
             }}
-            src={`http://localhost:8080${user.avatar}` || ""}
+            src={user ? `http://localhost:8080${user.avatar}` : ""}
             onClick={handleViewProfile}
           />
         </IconButton>
@@ -67,6 +71,7 @@ function ForumMain() {
           }}
         >
           <InputBase
+            disabled={!user}
             fullWidth
             placeholder="Đăng bài thôi nào"
             readOnly

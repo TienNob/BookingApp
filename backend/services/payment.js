@@ -30,7 +30,6 @@ router.post("/", async (req, res) => {
       seatsPurchased,
       departureTime,
     } = req.body;
-    console.log(req.body);
     const embed_data = {
       redirecturl: "http://localhost:5173/my-tickets",
       tripId: tripId,
@@ -53,7 +52,7 @@ router.post("/", async (req, res) => {
       embed_data: JSON.stringify(embed_data),
       amount: amount,
       callback_url:
-        "https://c24c-103-156-4-231.ngrok-free.app/api/payment/callback",
+        "https://993a-42-112-80-147.ngrok-free.app/api/payment/callback",
       description: description || `Payment for order #${transID}`,
       bank_code: "",
     };
@@ -201,9 +200,7 @@ router.post("/callback", async (req, res) => {
         link: tripId,
       });
       await adminNotification.save();
-
-      result.return_code = 1;
-      result.return_message = "success";
+      // Gửi thông tin qua SMS
     }
   } catch (error) {
     console.error("Error processing callback: ", error.message);

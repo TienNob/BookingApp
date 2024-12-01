@@ -34,6 +34,10 @@ const ForumRight = () => {
 
   // Function to follow/unfollow a user
   const handleFollowToggle = async (user) => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
     try {
       if (user.followers.some((follower) => follower === userId)) {
         // Unfollow user
@@ -99,6 +103,10 @@ const ForumRight = () => {
     );
   };
   const handleProfileClick = (userId) => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
     navigate(`/forum-profile/${userId}`);
   };
 

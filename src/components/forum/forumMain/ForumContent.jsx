@@ -58,6 +58,10 @@ const ForumContent = ({ postsData, userId }) => {
   }, [postsData, userId]);
 
   const handleHeart = async (postId) => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
     try {
       const response = await axios.post(
         `http://localhost:8080/api/posts/${postId}/hearts`,
@@ -95,6 +99,10 @@ const ForumContent = ({ postsData, userId }) => {
   };
 
   const handleComment = async (postId) => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
     try {
       await axios.post(
         `http://localhost:8080/api/posts/${postId}/comments`,
@@ -167,6 +175,10 @@ const ForumContent = ({ postsData, userId }) => {
     navigate(`/ticket-detail/${tripId}`);
   };
   const handleViewProfile = (userId) => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
     navigate(`/forum-profile/${userId}`);
   };
   const handleImageClick = (imageUrl) => {

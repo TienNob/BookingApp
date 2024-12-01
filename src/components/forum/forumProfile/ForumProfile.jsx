@@ -744,6 +744,26 @@ const ForumProfile = () => {
           onClose={() => setOpenAvatarPreviewDialog(false)}
         >
           <DialogContent>
+            <Typography variant="h6" color="textPrimary">
+              Thay đổi ảnh đại diện
+            </Typography>
+            <Button
+              sx={{
+                borderRadius: "8px",
+                mt: 2,
+                mb: 2,
+                backgroundColor: "var(--primary-color)",
+                "&:hover": {
+                  backgroundColor: "var(--hover-color)",
+                },
+              }}
+              variant="contained"
+              component="label"
+            >
+              <FileUploadIcon />
+              Chọn hình ảnh từ file
+              <input type="file" hidden onChange={handleAvatarFileChange} />
+            </Button>
             {avatarPreview && (
               <Box
                 sx={{
@@ -764,29 +784,17 @@ const ForumProfile = () => {
                 />
               </Box>
             )}
-            <Button
-              sx={{
-                borderRadius: "8px",
-                backgroundColor: "var(--primary-color)",
-                "&:hover": {
-                  backgroundColor: "var(--hover-color)",
-                },
-              }}
-              variant="contained"
-              component="label"
-            >
-              <FileUploadIcon />
-              Chọn hình ảnh từ file
-              <input type="file" hidden onChange={handleAvatarFileChange} />
-            </Button>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpenAvatarPreviewDialog(false)}>
+            <Button
+              sx={{ color: "var(--grey)" }}
+              onClick={() => setOpenAvatarPreviewDialog(false)}
+            >
               Huỷ
             </Button>
             <Button
               onClick={handleUploadAvatar}
-              color="primary"
+              sx={{ color: "var(--primary-color)" }}
               disabled={!avatar}
             >
               Xác Nhận

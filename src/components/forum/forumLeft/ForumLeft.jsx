@@ -30,10 +30,15 @@ function ForumLeft() {
   const [newMessages, setNewMessages] = useState(
     JSON.parse(localStorage.getItem("newMessageFlags")) || {}
   ); // Initialize from localStorage
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
   // Xử lý mở modal và fetch dữ liệu người dùng
   const handleSearchClick = async () => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
     setOpen(true);
   };
 
@@ -43,6 +48,10 @@ function ForumLeft() {
   };
 
   const handleNotiClick = async () => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
     setOpenNoti(true);
   };
 
@@ -87,6 +96,10 @@ function ForumLeft() {
     <List sx={{ backgroundColor: "#fff", borderRadius: "15px", px: 1 }}>
       <ListItem
         onClick={() => {
+          if (!token) {
+            navigate("/login");
+            return;
+          }
           navigate(`/forum-profile/${userId}`);
         }}
         button
@@ -110,6 +123,10 @@ function ForumLeft() {
 
       <ListItem
         onClick={() => {
+          if (!token) {
+            navigate("/login");
+            return;
+          }
           navigate("/chatbox");
         }}
         button
@@ -153,6 +170,10 @@ function ForumLeft() {
       </ListItem>
       <ListItem
         onClick={() => {
+          if (!token) {
+            navigate("/login");
+            return;
+          }
           navigate(`/my-trips`);
         }}
         button
@@ -165,6 +186,10 @@ function ForumLeft() {
       </ListItem>
       <ListItem
         onClick={() => {
+          if (!token) {
+            navigate("/login");
+            return;
+          }
           navigate(`/my-tickets`);
         }}
         button
